@@ -1,0 +1,19 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Blooming Plant API - example AWS SAM template. Build TypeScript to `dist/` before packaging.
+
+Resources:
+  GetPlantFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/handlers/getPlant.handler
+      Runtime: nodejs18.x
+      CodeUri: .
+      MemorySize: 128
+      Timeout: 10
+      Events:
+        GetPlantApi:
+          Type: Api
+          Properties:
+            Path: /plants/{id}
+            Method: GET
