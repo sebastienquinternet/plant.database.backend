@@ -1,17 +1,24 @@
 import { jsonResponse } from '../utils/response';
-import { Plant } from '../models/plant';
+import { PlantTaxon, SoilType } from '../models/plant';
 
 export const handler = async (event: any) => {
-  const id = event?.pathParameters?.id || '1';
+  const id = event?.pathParameters?.id || 'monstera_deliciosa';
 
-  const plant: Plant = {
-    id,
-    commonName: 'Monstera Deliciosa',
+  const plant: PlantTaxon = {
+    PK: `PLANT#${id}`,
     scientificName: 'Monstera deliciosa',
     family: 'Araceae',
-    description: 'Tropical plant with large fenestrated leaves.',
-    sunlight: 'Bright indirect light',
-    watering: 'Water when top inch of soil is dry.'
+    genus: 'Monstera',
+    aliases: ['monstera', 'cheese plant', 'deliciosa'],
+    soil: [SoilType.Loamy, SoilType.Sandy],
+    water: 6,
+    light: 7,
+    attributes: {
+      origin: 'Central America',
+      floweringTime: 'Spring'
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   };
 
   return jsonResponse(200, { plant });
