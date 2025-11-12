@@ -14,7 +14,7 @@ export interface PlantTaxon {
   family?: string;
   genus?: string;
   aliases: string[];                // ["monstera", "cheese plant", "deliciosa"]
-  soil: SoilType | SoilType[];      // reference to SoilType
+  soil: SoilType;                   // reference to SoilType
   water?: number;                   // 1–10 scale
   light?: number;                   // 1–10 scale
   attributes?: Record<string, any>; // extra info from APIs

@@ -1,5 +1,4 @@
 import { jsonResponse } from '../utils/response';
-import { PlantTaxon, SoilType } from '../models/plant';
 import { getPlantByPK, searchPlantByPrefix } from '../services/plantService';
 
 export const handler = async (event: any) => {
