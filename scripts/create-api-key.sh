@@ -71,7 +71,7 @@ echo "Found RestApi id: $REST_API_ID"
 # Check for existing API key with the same name
 EXISTING_KEY_ID=$(aws apigateway get-api-keys --name-query "$KEY_NAME" --include-values --region "$REGION" --query "items[?name=='${KEY_NAME}'].[id] | [0]" --output text || true)
 if [[ -n "$EXISTING_KEY_ID" && "$EXISTING_KEY_ID" != "None" && $FORCE_CREATE -eq 0 ]]; then
-  echo "An API key named '$KEY_NAME' already exists (id: $EXISTING_KEY_ID)." 
+  echo "An API key named '$KEY_NAME' already exists (id: $EXISTING_KEY_ID)."
   echo "Retrieve its value with: aws apigateway get-api-keys --name-query $KEY_NAME --include-values --region $REGION"
   exit 0
 fi

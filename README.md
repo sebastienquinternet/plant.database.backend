@@ -82,28 +82,8 @@ Post-deploy: create API Key & Usage Plan
 ```
 
 Region selection (how the script decides which AWS region to use)
-
-- The script sets the region from the environment variable `AWS_REGION` if it is present; otherwise it falls back to `us-east-1`.
-- Important detail: the script always passes `--region` to every `aws` CLI call using the chosen region value. That means it will NOT fall back to the AWS CLI config file (`~/.aws/config`) or `AWS_DEFAULT_REGION` — it uses the explicit `AWS_REGION` env var if set, otherwise `us-east-1`.
-
-If you prefer the script to honor your AWS CLI configuration (profile/region) when no env var is set, change the line near the top of the script from:
-
-```bash
-REGION="${AWS_REGION:-us-east-1}"
-```
-
-to something that prefers `AWS_DEFAULT_REGION` and then the CLI config, for example:
-
-```bash
-REGION="${AWS_REGION:-${AWS_DEFAULT_REGION:-}}
-if [[ -z "$REGION" ]]; then
-	# try to read default region from aws config using the default profile
-	REGION=$(aws configure get region || true)
-fi
-REGION=${REGION:-us-east-1}
-```
-
 This change will:
+- Use `--region REGION` if set; else
 - Use `AWS_REGION` if set; else
 - Use `AWS_DEFAULT_REGION` if set; else
 - Try `aws configure get region` (reads from default profile in `~/.aws/config`) ; else
@@ -112,4 +92,3 @@ This change will:
 Security note
 
 - If you let AWS generate the API key value, the script prints it to stdout. Treat this value like a secret and rotate/store it securely (Secrets Manager, Parameter Store, or your secret vault).
-
