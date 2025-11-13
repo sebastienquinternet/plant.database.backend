@@ -1,13 +1,11 @@
 import { jsonResponse } from '../utils/response';
 import { PlantTaxon } from '../models/plant';
-import { requireApiKey } from '../utils/auth';
 import { createLogger } from '../services/loggerService';
 const logger = createLogger({ service: 'plant.database.backend', environment: 'dev' });
 
 export const handler = async (event: any) => {
   // For now, stub: accept body and echo back as created
   try {
-    requireApiKey(event);
     const body = event?.body ? JSON.parse(event.body) : null;
     if (!body) return jsonResponse(400, { message: 'Missing body' });
 

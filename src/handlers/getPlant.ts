@@ -1,7 +1,6 @@
 import { jsonResponse } from '../utils/response';
 import { getPlantByPK, searchPlantByPrefix } from '../services/plantService';
 import { createLogger } from '../services/loggerService';
-import { requireApiKey } from '../utils/auth';
 const logger = createLogger({ service: 'plant.database.backend', environment: 'dev' });
 
 // logger.info('Hello world', { userId: 123 });
@@ -12,12 +11,7 @@ export const handler = async (event: any) => {
   const id = event?.pathParameters?.id;
 
   try {
-    // require API key - throws with statusCode=401 if missing/invalid
-    try {
-      requireApiKey(event);
-    } catch (err: any) {
-      return jsonResponse(err.statusCode || 401, { message: 'Unauthorized' });
-    }
+    // Authentication is handled by API Gateway (API Key required at the gateway)
     if (q) {
       const plants = await searchPlantByPrefix(q);
       return jsonResponse(200, { plants });

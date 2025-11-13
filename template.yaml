@@ -3,6 +3,35 @@ Transform: AWS::Serverless-2016-10-31
 Description: Blooming Plant API - example AWS SAM template. Build TypeScript to `dist/` before packaging.
 
 Resources:
+  PlantApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      Name: PlantDatabaseApi
+      Cors: "'*'"
+      EndpointConfiguration: REGIONAL
+
+  ApiGatewayKey:
+    Type: AWS::ApiGateway::ApiKey
+    Properties:
+      Name: PlantDatabaseApiKey
+      Enabled: true
+
+  ApiUsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    Properties:
+      UsagePlanName: PlantDatabaseUsagePlan
+      ApiStages:
+        - ApiId: !Ref PlantApi
+          Stage: prod
+
+  ApiUsagePlanKey:
+    Type: AWS::ApiGateway::UsagePlanKey
+    Properties:
+      KeyId: !Ref ApiGatewayKey
+      KeyType: API_KEY
+      UsagePlanId: !Ref ApiUsagePlan
+
   GetPlantFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -15,13 +44,19 @@ Resources:
         GetPlantById:
           Type: Api
           Properties:
+            RestApiId: !Ref PlantApi
             Path: /plants/{id}
             Method: GET
+            Auth:
+              ApiKeyRequired: true
         SearchPlants:
           Type: Api
           Properties:
+            RestApiId: !Ref PlantApi
             Path: /plants
             Method: GET
+            Auth:
+              ApiKeyRequired: true
 
   CreatePlantFunction:
     Type: AWS::Serverless::Function
@@ -35,8 +70,11 @@ Resources:
         CreatePlantApi:
           Type: Api
           Properties:
+            RestApiId: !Ref PlantApi
             Path: /plants
             Method: POST
+            Auth:
+              ApiKeyRequired: true
 
   UpdatePlantFunction:
     Type: AWS::Serverless::Function
@@ -50,8 +88,11 @@ Resources:
         UpdatePlantApi:
           Type: Api
           Properties:
+            RestApiId: !Ref PlantApi
             Path: /plants/{id}
             Method: PUT
+            Auth:
+              ApiKeyRequired: true
 
   DeletePlantFunction:
     Type: AWS::Serverless::Function
@@ -65,5 +106,8 @@ Resources:
         DeletePlantApi:
           Type: Api
           Properties:
+            RestApiId: !Ref PlantApi
             Path: /plants/{id}
             Method: DELETE
+            Auth:
+              ApiKeyRequired: true
