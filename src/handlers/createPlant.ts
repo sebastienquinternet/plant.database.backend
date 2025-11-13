@@ -1,5 +1,7 @@
 import { jsonResponse } from '../utils/response';
 import { PlantTaxon } from '../models/plant';
+import { createLogger } from '../services/loggerService';
+const logger = createLogger({ service: 'plant.database.backend', environment: 'dev' });
 
 export const handler = async (event: any) => {
   // For now, stub: accept body and echo back as created
@@ -16,7 +18,7 @@ export const handler = async (event: any) => {
     // TODO: persist to DynamoDB in later iteration
     return jsonResponse(201, { plant: created });
   } catch (err: any) {
-    console.error(err);
+    logger.error(err);
     return jsonResponse(400, { message: 'Invalid JSON body' });
   }
 };

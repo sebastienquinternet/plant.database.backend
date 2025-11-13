@@ -1,5 +1,7 @@
 import { jsonResponse } from '../utils/response';
 import { PlantTaxon } from '../models/plant';
+import { createLogger } from '../services/loggerService';
+const logger = createLogger({ service: 'plant.database.backend', environment: 'dev' });
 
 export const handler = async (event: any) => {
   const id = event?.pathParameters?.id;
@@ -18,7 +20,7 @@ export const handler = async (event: any) => {
     // TODO: persist partial update to DynamoDB
     return jsonResponse(200, { plant: updated });
   } catch (err: any) {
-    console.error(err);
+    logger.error(err);
     return jsonResponse(400, { message: 'Invalid JSON body' });
   }
 };
