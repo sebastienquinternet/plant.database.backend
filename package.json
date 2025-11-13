@@ -8,7 +8,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "build:esbuild": "esbuild src/handlers/getPlant.ts --bundle --platform=node --target=node18 --outfile=dist/handlers/getPlant.js --sourcemap",
+    "build:esbuild": "esbuild src/handlers/*.ts --bundle --platform=node --target=node18 --outdir=dist/handlers --sourcemap",
     "clean": "rm -rf dist",
     "watch": "tsc -w",
     "start": "node dist/handlers/getPlant.js",

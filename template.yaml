@@ -12,8 +12,58 @@ Resources:
       MemorySize: 128
       Timeout: 10
       Events:
-        GetPlantApi:
+        GetPlantById:
           Type: Api
           Properties:
             Path: /plants/{id}
             Method: GET
+        SearchPlants:
+          Type: Api
+          Properties:
+            Path: /plants
+            Method: GET
+
+  CreatePlantFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/handlers/createPlant.handler
+      Runtime: nodejs18.x
+      CodeUri: .
+      MemorySize: 128
+      Timeout: 10
+      Events:
+        CreatePlantApi:
+          Type: Api
+          Properties:
+            Path: /plants
+            Method: POST
+
+  UpdatePlantFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/handlers/updatePlant.handler
+      Runtime: nodejs18.x
+      CodeUri: .
+      MemorySize: 128
+      Timeout: 10
+      Events:
+        UpdatePlantApi:
+          Type: Api
+          Properties:
+            Path: /plants/{id}
+            Method: PUT
+
+  DeletePlantFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/handlers/deletePlant.handler
+      Runtime: nodejs18.x
+      CodeUri: .
+      MemorySize: 128
+      Timeout: 10
+      Events:
+        DeletePlantApi:
+          Type: Api
+          Properties:
+            Path: /plants/{id}
+            Method: DELETE
