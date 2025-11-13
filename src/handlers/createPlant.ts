@@ -11,7 +11,7 @@ export const handler = async (event: any) => {
     if (!body) return jsonResponse(400, { message: 'Missing body' });
 
     const created = await putPlant(body as Partial<PlantTaxon>);
-    logger.info(`POST Plant response`, { created });
+    logger.success(`POST Plant response`, { created });
     return jsonResponse(201, { plant: created });
   } catch (err: any) {
     logger.error(err);

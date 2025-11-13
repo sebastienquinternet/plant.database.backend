@@ -11,15 +11,18 @@ export const handler = async (event: any) => {
     if (q) {
       logger.info(`GET Plant request: q=${q}`);
       const plants = await searchPlantByPrefix(q);
-      logger.info(`GET Plant response: q=${q}`, { plants });
+      logger.success(`GET Plant response: q=${q}`, { plants });
       return jsonResponse(200, { plants });
     }
 
     if (id) {
       logger.info(`GET Plant request: PLANT#${id}`);
       const plant = await getPlantByPK(`PLANT#${id}`);
-      logger.info(`GET Plant response: PLANT#${id}`, { plant });
-      if (!plant) return jsonResponse(404, { message: 'Plant not found' });
+      if (!plant) {
+        logger.info(`GET Plant response: PLANT#${id}`, { message: 'Plant not found' });
+        return jsonResponse(404, { message: 'Plant not found' });
+      }
+      logger.success(`GET Plant response: PLANT#${id}`, { plant });
       return jsonResponse(200, { plant });
     }
 

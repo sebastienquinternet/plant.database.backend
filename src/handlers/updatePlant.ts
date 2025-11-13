@@ -14,8 +14,11 @@ export const handler = async (event: any) => {
 
     logger.info(`PUT Plant request: PLANT#${id}`, body);
     const updated = await updatePlant(id, body as Partial<PlantTaxon>);
-    logger.info(`PUT Plant response: PLANT#${id}`, { updated });
-    if (!updated) return jsonResponse(404, { message: 'Plant not found' });
+    if (!updated) {
+      logger.info(`PUT Plant response: PLANT#${id}`, { message: 'Plant not found' });
+      return jsonResponse(404, { message: 'Plant not found' });
+    }
+    logger.success(`PUT Plant response: PLANT#${id}`, { updated });
     return jsonResponse(200, { plant: updated });
   } catch (err: any) {
     logger.error(err);
