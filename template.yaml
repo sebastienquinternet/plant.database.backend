@@ -40,6 +40,16 @@ Resources:
       CodeUri: .
       MemorySize: 128
       Timeout: 10
+      Environment:
+        Variables:
+          PLANT_TABLE: !Ref PlantTable
+          ALIAS_INDEX: AliasIndex
+          ALIAS_GSI_PARTITION_NAME: GSI1PK
+          ALIAS_GSI_PARTITION_VALUE: ALIAS
+          ALIAS_ATTRIBUTE_NAME: alias
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PlantTable
       Events:
         GetPlantById:
           Type: Api
@@ -66,6 +76,16 @@ Resources:
       CodeUri: .
       MemorySize: 128
       Timeout: 10
+      Environment:
+        Variables:
+          PLANT_TABLE: !Ref PlantTable
+          ALIAS_INDEX: AliasIndex
+          ALIAS_GSI_PARTITION_NAME: GSI1PK
+          ALIAS_GSI_PARTITION_VALUE: ALIAS
+          ALIAS_ATTRIBUTE_NAME: alias
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PlantTable
       Events:
         CreatePlantApi:
           Type: Api
@@ -84,6 +104,16 @@ Resources:
       CodeUri: .
       MemorySize: 128
       Timeout: 10
+      Environment:
+        Variables:
+          PLANT_TABLE: !Ref PlantTable
+          ALIAS_INDEX: AliasIndex
+          ALIAS_GSI_PARTITION_NAME: GSI1PK
+          ALIAS_GSI_PARTITION_VALUE: ALIAS
+          ALIAS_ATTRIBUTE_NAME: alias
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PlantTable
       Events:
         UpdatePlantApi:
           Type: Api
@@ -102,6 +132,16 @@ Resources:
       CodeUri: .
       MemorySize: 128
       Timeout: 10
+      Environment:
+        Variables:
+          PLANT_TABLE: !Ref PlantTable
+          ALIAS_INDEX: AliasIndex
+          ALIAS_GSI_PARTITION_NAME: GSI1PK
+          ALIAS_GSI_PARTITION_VALUE: ALIAS
+          ALIAS_ATTRIBUTE_NAME: alias
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PlantTable
       Events:
         DeletePlantApi:
           Type: Api
@@ -111,3 +151,28 @@ Resources:
             Method: DELETE
             Auth:
               ApiKeyRequired: true
+
+  PlantTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: PlantTaxon
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: GSI1PK
+          AttributeType: S
+        - AttributeName: alias
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: AliasIndex
+          KeySchema:
+            - AttributeName: GSI1PK
+              KeyType: HASH
+            - AttributeName: alias
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL

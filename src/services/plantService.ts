@@ -1,5 +1,5 @@
 import { ddbDocClient } from './dynamoClient';
-import { QueryCommand, GetCommand, GetCommandInput } from '@aws-sdk/lib-dynamodb';
+import { QueryCommand, GetCommand, BatchWriteCommand } from '@aws-sdk/lib-dynamodb';
 import { PlantTaxon } from '../models/plant';
 import { createLogger } from './loggerService';
 const logger = createLogger({ service: 'plant.database.backend', ddsource:'plant.database', environment: 'dev' });
@@ -29,7 +29,8 @@ export async function getPlantPKsByAliasPrefix(prefix: string): Promise<string[]
       }
     })
   );
-  return [...new Set((result.Items || []).map((i: any) => i.PK))];
+  // alias items store a reference to the target plant PK in `targetPK`
+  return [...new Set((result.Items || []).map((i: any) => i.targetPK || i.PK))];
 }
 
 export async function getPlantsByPKs(pks: string[]): Promise<PlantTaxon[]> {
@@ -54,7 +55,7 @@ export async function searchPlantByPrefix(prefix: string): Promise<PlantTaxon[]>
       logger.warn(`DynamoDB resource not found when searching aliases: ${err.message}`);
       return [];
     }
-    logger.error;(`searchPlantByPrefix exception: ${err.message}`);
+    logger.error(`searchPlantByPrefix exception: ${err.message}`);
     throw err;
   }
 }
@@ -68,7 +69,126 @@ export async function getPlantByPK(pk: string): Promise<PlantTaxon | null> {
       logger.warn(`DynamoDB table or resource not found when getting PK ${pk}: ${err.message}`);
       return null;
     }
-    logger.error;(`searchPlantByPrefix exception: ${err.message}`);
+    logger.error(`searchPlantByPrefix exception: ${err.message}`);
     throw err;
   }
+}
+
+function slugifyName(name: string) {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '');
+}
+
+export async function putPlant(body: Partial<PlantTaxon>): Promise<PlantTaxon> {
+  const scientificName = body.scientificName || 'unnamed';
+  const id = (body.PK && body.PK.replace(/^PLANT#/, '')) || slugifyName(scientificName);
+  const pk = `PLANT#${id}`;
+  const now = new Date().toISOString();
+  const aliases = (body.aliases || []).map((a: string) => a.toLowerCase());
+
+  const mainItem: any = {
+    PK: pk,
+    scientificName,
+    family: body.family,
+    genus: body.genus,
+    aliases,
+    soil: body.soil,
+    water: body.water,
+    light: body.light,
+    attributes: body.attributes,
+    createdAt: now,
+    updatedAt: now
+  };
+
+  // prepare batch write: main item + alias items
+  const writeRequests: any[] = [];
+  writeRequests.push({ PutRequest: { Item: mainItem } });
+
+  for (const alias of aliases) {
+    const aliasSlug = slugifyName(alias);
+    const aliasPk = `ALIAS#${id}#${aliasSlug}`;
+    const aliasItem = {
+      PK: aliasPk,
+      GSI1PK: ALIAS_GSI_PARTITION_VALUE,
+      alias: alias.toLowerCase(),
+      targetPK: pk,
+      createdAt: now
+    };
+    writeRequests.push({ PutRequest: { Item: aliasItem } });
+  }
+
+  // BatchWrite supports up to 25 items per request; aliases will typically be small
+  await ddbDocClient.send(new BatchWriteCommand({ RequestItems: { [TABLE_NAME]: writeRequests } }));
+
+  return mainItem as PlantTaxon;
+}
+
+export async function updatePlant(pkId: string, updates: Partial<PlantTaxon>): Promise<PlantTaxon | null> {
+  const pk = pkId.startsWith('PLANT#') ? pkId : `PLANT#${pkId}`;
+  const existing = await getPlantByPK(pk);
+  if (!existing) return null;
+
+  const merged = {
+    ...existing,
+    ...updates,
+    aliases: (updates.aliases || existing.aliases || []).map((a: string) => a.toLowerCase()),
+    updatedAt: new Date().toISOString()
+  } as PlantTaxon;
+
+  // delete old alias items then recreate new alias items
+  const oldAliases = existing.aliases || [];
+  const deleteRequests: any[] = [];
+  for (const alias of oldAliases) {
+    const aliasSlug = slugifyName(alias);
+    const aliasPk = `ALIAS#${pk.replace(/^PLANT#/, '')}#${aliasSlug}`;
+    deleteRequests.push({ DeleteRequest: { Key: { PK: aliasPk } } });
+  }
+
+  const putRequests: any[] = [];
+  // main item put
+  putRequests.push({ PutRequest: { Item: merged } });
+  for (const alias of merged.aliases || []) {
+    const aliasSlug = slugifyName(alias);
+    const aliasPk = `ALIAS#${pk.replace(/^PLANT#/, '')}#${aliasSlug}`;
+    const aliasItem = {
+      PK: aliasPk,
+      GSI1PK: ALIAS_GSI_PARTITION_VALUE,
+      alias: alias.toLowerCase(),
+      targetPK: pk,
+      createdAt: existing.createdAt || new Date().toISOString()
+    };
+    putRequests.push({ PutRequest: { Item: aliasItem } });
+  }
+
+  const requests = [...deleteRequests, ...putRequests];
+  if (requests.length > 0) {
+    await ddbDocClient.send(new BatchWriteCommand({ RequestItems: { [TABLE_NAME]: requests } }));
+  }
+
+  return merged;
+}
+
+export async function deletePlant(pkId: string): Promise<boolean> {
+  const pk = pkId.startsWith('PLANT#') ? pkId : `PLANT#${pkId}`;
+  const existing = await getPlantByPK(pk);
+  if (!existing) return false;
+
+  const deleteRequests: any[] = [];
+  // delete alias items
+  for (const alias of existing.aliases || []) {
+    const aliasSlug = slugifyName(alias);
+    const aliasPk = `ALIAS#${pk.replace(/^PLANT#/, '')}#${aliasSlug}`;
+    deleteRequests.push({ DeleteRequest: { Key: { PK: aliasPk } } });
+  }
+  // delete main item
+  deleteRequests.push({ DeleteRequest: { Key: { PK: pk } } });
+
+  if (deleteRequests.length > 0) {
+    await ddbDocClient.send(new BatchWriteCommand({ RequestItems: { [TABLE_NAME]: deleteRequests } }));
+  }
+
+  return true;
 }

@@ -1,6 +1,7 @@
 import { jsonResponse } from '../utils/response';
 import { PlantTaxon } from '../models/plant';
 import { createLogger } from '../services/loggerService';
+import { updatePlant } from '../services/plantService';
 const logger = createLogger({ service: 'plant.database.backend', ddsource:'plant.database', environment: 'dev' });
 
 export const handler = async (event: any) => {
@@ -11,16 +12,11 @@ export const handler = async (event: any) => {
     const body = event?.body ? JSON.parse(event.body) : null;
     if (!body) return jsonResponse(400, { message: 'Missing body' });
 
-    const updated = {
-      PK: `PLANT#${id}`,
-      ...(body as Partial<PlantTaxon>),
-      updatedAt: new Date().toISOString()
-    } as Partial<PlantTaxon>;
-
-    // TODO: persist partial update to DynamoDB
+    const updated = await updatePlant(id, body as Partial<PlantTaxon>);
+    if (!updated) return jsonResponse(404, { message: 'Plant not found' });
     return jsonResponse(200, { plant: updated });
   } catch (err: any) {
     logger.error(err);
-    return jsonResponse(400, { message: 'Invalid JSON body' });
+    return jsonResponse(500, { message: 'Failed to update plant' });
   }
 };
