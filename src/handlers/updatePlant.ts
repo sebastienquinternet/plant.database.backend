@@ -1,7 +1,7 @@
 import { jsonResponse } from '../utils/response';
 import { PlantTaxon } from '../models/plant';
 import { createLogger } from '../services/loggerService';
-const logger = createLogger({ service: 'plant.database.backend', environment: 'dev' });
+const logger = createLogger({ service: 'plant.database.backend', ddsource:'plant.database', environment: 'dev' });
 
 export const handler = async (event: any) => {
   const id = event?.pathParameters?.id;

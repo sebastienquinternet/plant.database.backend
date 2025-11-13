@@ -1,7 +1,7 @@
 import { jsonResponse } from '../utils/response';
 import { getPlantByPK, searchPlantByPrefix } from '../services/plantService';
 import { createLogger } from '../services/loggerService';
-const logger = createLogger({ service: 'plant.database.backend', environment: 'dev' });
+const logger = createLogger({ service: 'plant.database.backend', ddsource:'plant.database', environment: 'dev' });
 
 export const handler = async (event: any) => {
   logger.info('getPlant handler', event);

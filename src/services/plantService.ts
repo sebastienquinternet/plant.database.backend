@@ -2,7 +2,7 @@ import { ddbDocClient } from './dynamoClient';
 import { QueryCommand, GetCommand, GetCommandInput } from '@aws-sdk/lib-dynamodb';
 import { PlantTaxon } from '../models/plant';
 import { createLogger } from './loggerService';
-const logger = createLogger({ service: 'plant.database.backend', environment: 'dev' });
+const logger = createLogger({ service: 'plant.database.backend', ddsource:'plant.database', environment: 'dev' });
 
 const TABLE_NAME = process.env.PLANT_TABLE || 'PlantTaxon';
 const ALIAS_INDEX = process.env.ALIAS_INDEX || 'AliasIndex';

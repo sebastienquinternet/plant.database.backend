@@ -42,7 +42,7 @@ function levelPriority(level: string) {
 export function createLogger(opts: LoggerOptions = {}) {
   const level = (opts.level || process.env.LOG_LEVEL || DEFAULT_LEVEL).toLowerCase();
   const service = opts.service || process.env.SERVICE_NAME || undefined;
-  const ddsource = opts.ddsource || process.env.DD_SOURCE || 'plant.database';
+  const ddsource = opts.ddsource || process.env.DD_SOURCE || undefined;
   const env = opts.environment || process.env.ENVIRONMENT || 'local';
 
   function shouldLog(msgLevel: string) {
