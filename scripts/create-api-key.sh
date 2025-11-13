@@ -8,7 +8,8 @@ API_NAME="PlantDatabaseApi"
 STAGE="prod"
 USAGE_PLAN_NAME="PlantDatabaseUsagePlan"
 KEY_NAME="PlantDatabaseApiKey"
-REGION="${AWS_REGION:-us-east-1}"
+# REGION will be resolved after parsing args: prefer explicit --region, else read AWS env vars or aws config
+REGION=""
 KEY_VALUE=""
 FORCE_CREATE=0
 
@@ -38,6 +39,22 @@ while [[ $# -gt 0 ]]; do
     *) echo "Unknown arg: $1"; usage; exit 1;;
   esac
 done
+
+# Resolve region: prefer explicit --region; else use env vars or aws config
+if [[ -z "$REGION" ]]; then
+  if [[ -n "${AWS_REGION:-}" ]]; then
+    REGION="$AWS_REGION"
+  elif [[ -n "${AWS_DEFAULT_REGION:-}" ]]; then
+    REGION="$AWS_DEFAULT_REGION"
+  else
+    REGION=$(aws configure get region 2>/dev/null || true)
+  fi
+fi
+
+if [[ -z "$REGION" || "$REGION" == "None" ]]; then
+  echo "ERROR: No AWS region specified. Pass --region or configure a default region (via AWS_REGION, AWS_DEFAULT_REGION, or 'aws configure set region <region>')." >&2
+  exit 2
+fi
 
 echo "Region: $REGION"
 echo "Looking for RestApi named: $API_NAME"
