@@ -4,7 +4,6 @@ version = 0.1
 stack_name = "plant-database-backend"
 resolve_s3 = true
 s3_prefix = "plant-database-backend"
-region = "ap-southeast-2"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
 image_repositories = []

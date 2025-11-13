@@ -3,15 +3,12 @@ import { getPlantByPK, searchPlantByPrefix } from '../services/plantService';
 import { createLogger } from '../services/loggerService';
 const logger = createLogger({ service: 'plant.database.backend', environment: 'dev' });
 
-// logger.info('Hello world', { userId: 123 });
-// logger.error('Oops', { err: { message: 'boom' } });
 export const handler = async (event: any) => {
   logger.info('getPlant handler', event);
   const q = event?.queryStringParameters?.q;
   const id = event?.pathParameters?.id;
 
   try {
-    // Authentication is handled by API Gateway (API Key required at the gateway)
     if (q) {
       const plants = await searchPlantByPrefix(q);
       return jsonResponse(200, { plants });

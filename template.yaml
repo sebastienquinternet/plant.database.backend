@@ -11,26 +11,26 @@ Resources:
       Cors: "'*'"
       EndpointConfiguration: REGIONAL
 
-  ApiGatewayKey:
-    Type: AWS::ApiGateway::ApiKey
-    Properties:
-      Name: PlantDatabaseApiKey
-      Enabled: true
+  # ApiGatewayKey:
+  #   Type: AWS::ApiGateway::ApiKey
+  #   Properties:
+  #     Name: PlantDatabaseApiKey
+  #     Enabled: true
 
-  ApiUsagePlan:
-    Type: AWS::ApiGateway::UsagePlan
-    Properties:
-      UsagePlanName: PlantDatabaseUsagePlan
-      ApiStages:
-        - ApiId: !Ref PlantApi
-          Stage: prod
+  # ApiUsagePlan:
+  #   Type: AWS::ApiGateway::UsagePlan
+  #   Properties:
+  #     UsagePlanName: PlantDatabaseUsagePlan
+  #     ApiStages:
+  #       - ApiId: !Ref PlantApi
+  #         Stage: prod
 
-  ApiUsagePlanKey:
-    Type: AWS::ApiGateway::UsagePlanKey
-    Properties:
-      KeyId: !Ref ApiGatewayKey
-      KeyType: API_KEY
-      UsagePlanId: !Ref ApiUsagePlan
+  # ApiUsagePlanKey:
+  #   Type: AWS::ApiGateway::UsagePlanKey
+  #   Properties:
+  #     KeyId: !Ref ApiGatewayKey
+  #     KeyType: API_KEY
+  #     UsagePlanId: !Ref ApiUsagePlan
 
   GetPlantFunction:
     Type: AWS::Serverless::Function
