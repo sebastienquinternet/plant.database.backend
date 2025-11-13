@@ -14,30 +14,48 @@ const ALIAS_ATTRIBUTE_NAME = process.env.ALIAS_ATTRIBUTE_NAME || 'alias';
 export async function searchPlantByPrefix(prefix: string): Promise<PlantTaxon[]> {
   // Query the alias GSI where the GSI partition equals a constant (e.g. 'ALIAS')
   // and the sort key (alias) begins with the provided prefix (lowercased).
-  const result = await ddbDocClient.send(
-    new QueryCommand({
-      TableName: TABLE_NAME,
-      IndexName: ALIAS_INDEX,
-      KeyConditionExpression: `#gsiPk = :gsiPkVal AND begins_with(#alias, :prefix)`,
-      ExpressionAttributeNames: {
-        '#gsiPk': ALIAS_GSI_PARTITION_NAME,
-        '#alias': ALIAS_ATTRIBUTE_NAME
-      },
-      ExpressionAttributeValues: {
-        ':gsiPkVal': ALIAS_GSI_PARTITION_VALUE,
-        ':prefix': prefix.toLowerCase()
-      }
-    })
-  );
+  let result;
+  try {
+    result = await ddbDocClient.send(
+      new QueryCommand({
+        TableName: TABLE_NAME,
+        IndexName: ALIAS_INDEX,
+        KeyConditionExpression: `#gsiPk = :gsiPkVal AND begins_with(#alias, :prefix)`,
+        ExpressionAttributeNames: {
+          '#gsiPk': ALIAS_GSI_PARTITION_NAME,
+          '#alias': ALIAS_ATTRIBUTE_NAME
+        },
+        ExpressionAttributeValues: {
+          ':gsiPkVal': ALIAS_GSI_PARTITION_VALUE,
+          ':prefix': prefix.toLowerCase()
+        }
+      })
+    );
+  } catch (err: any) {
+    // If the table or index doesn't exist locally, return empty result instead of throwing
+    if (err?.name === 'ResourceNotFoundException') {
+      console.warn(`DynamoDB resource not found when searching aliases: ${err.message}`);
+      return [];
+    }
+    throw err;
+  }
 
   const plantPKs = [...new Set((result.Items || []).map((i: any) => i.PK))];
 
   const plants = await Promise.all(
     plantPKs.map(async (pk) => {
-      const getRes = await ddbDocClient.send(
-        new GetCommand({ TableName: TABLE_NAME, Key: { PK: pk } } as any)
-      );
-      return getRes.Item as PlantTaxon | undefined;
+      try {
+        const getRes = await ddbDocClient.send(
+          new GetCommand({ TableName: TABLE_NAME, Key: { PK: pk } } as any)
+        );
+        return getRes.Item as PlantTaxon | undefined;
+      } catch (err: any) {
+        if (err?.name === 'ResourceNotFoundException') {
+          console.warn(`DynamoDB table not found when getting PK ${pk}: ${err.message}`);
+          return undefined;
+        }
+        throw err;
+      }
     })
   );
 
@@ -45,6 +63,14 @@ export async function searchPlantByPrefix(prefix: string): Promise<PlantTaxon[]>
 }
 
 export async function getPlantByPK(pk: string): Promise<PlantTaxon | null> {
-  const res = await ddbDocClient.send(new GetCommand({ TableName: TABLE_NAME, Key: { PK: pk } } as any));
-  return (res.Item as PlantTaxon) ?? null;
+  try {
+    const res = await ddbDocClient.send(new GetCommand({ TableName: TABLE_NAME, Key: { PK: pk } } as any));
+    return (res.Item as PlantTaxon) ?? null;
+  } catch (err: any) {
+    if (err?.name === 'ResourceNotFoundException') {
+      console.warn(`DynamoDB table or resource not found when getting PK ${pk}: ${err.message}`);
+      return null;
+    }
+    throw err;
+  }
 }
