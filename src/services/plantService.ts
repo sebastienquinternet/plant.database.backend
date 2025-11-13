@@ -51,10 +51,6 @@ export async function searchPlantByPrefix(prefix: string): Promise<PlantTaxon[]>
     if (pks.length === 0) return [];
     return getPlantsByPKs(pks);
   } catch (err: any) {
-    if (err?.name === 'ResourceNotFoundException') {
-      logger.warn(`DynamoDB resource not found when searching aliases: ${err.message}`);
-      return [];
-    }
     logger.error(`searchPlantByPrefix exception: ${err.message}`);
     throw err;
   }
@@ -65,10 +61,6 @@ export async function getPlantByPK(pk: string): Promise<PlantTaxon | null> {
     const res = await ddbDocClient.send(new GetCommand({ TableName: TABLE_NAME, Key: { PK: pk } } as any));
     return (res.Item as PlantTaxon) ?? null;
   } catch (err: any) {
-    if (err?.name === 'ResourceNotFoundException') {
-      logger.warn(`DynamoDB table or resource not found when getting PK ${pk}: ${err.message}`);
-      return null;
-    }
     logger.error(`searchPlantByPrefix exception: ${err.message}`);
     throw err;
   }
@@ -92,12 +84,19 @@ export async function putPlant(body: Partial<PlantTaxon>): Promise<PlantTaxon> {
   const mainItem: any = {
     PK: pk,
     scientificName,
+    kingdom: body.kingdom,
+    phylum: body.phylum,
+    class: body.class,
+    order: body.order,
     family: body.family,
     genus: body.genus,
+    species: body.species,
     aliases,
-    soil: body.soil,
-    water: body.water,
+    watering: body.watering,
     light: body.light,
+    soil: body.soil,
+    humidity: body.humidity,
+    temperature: body.temperature,
     attributes: body.attributes,
     createdAt: now,
     updatedAt: now
@@ -135,6 +134,12 @@ export async function updatePlant(pkId: string, updates: Partial<PlantTaxon>): P
     ...existing,
     ...updates,
     aliases: (updates.aliases || existing.aliases || []).map((a: string) => a.toLowerCase()),
+    // preserve existing nested metrics unless updated
+    watering: updates.watering ?? existing.watering,
+    light: updates.light ?? existing.light,
+    soil: updates.soil ?? existing.soil,
+    humidity: updates.humidity ?? existing.humidity,
+    temperature: updates.temperature ?? existing.temperature,
     updatedAt: new Date().toISOString()
   } as PlantTaxon;
 
