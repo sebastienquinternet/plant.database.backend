@@ -17,7 +17,8 @@ export const handler = async (event: any) => {
 
     if (id) {
       logger.info(`GET Plant request: PLANT#${id}`);
-      const plant = await getPlantByPK(`PLANT#${id}`);
+      const plant = await getPlantByPK(id);
+      // const plant = await getPlantByPK(`PLANT#${id}`);
       if (!plant) {
         logger.info(`GET Plant response: PLANT#${id}`, { message: 'Plant not found' });
         return jsonResponse(404, { message: 'Plant not found' });

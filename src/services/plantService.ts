@@ -11,14 +11,13 @@ const TABLE_NAME = process.env.PLANT_TABLE || 'PlantTaxon';
 
 function slugifyName(name: string) {
   return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/_+/g, '_')
-    .replace(/^_|_$/g, '');
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, '_')
+  .replace(/_+/g, '_')
+  .replace(/^_|_$/g, '');
 }
 
 export async function getPlantPKsByAliasPrefix(prefix: string): Promise<string[]> {
-  // aliases.json keys are stored without the PLANT# prefix for compactness.
   const lower = prefix.toLowerCase();
   const matches = new Set<string>();
   for (const [alias, pks] of Object.entries(aliases as Record<string, string[]>)) {
@@ -26,7 +25,7 @@ export async function getPlantPKsByAliasPrefix(prefix: string): Promise<string[]
       continue;
     }
     for (const shortPk of pks) {
-      matches.add(`PLANT#${shortPk}`); // add PLANT# prefix when returning
+      matches.add(`PLANT#${shortPk}`);
     }
   }
   return Array.from(matches);
@@ -46,14 +45,20 @@ export async function searchPlantByPrefix(prefix: string): Promise<PlantCard[]> 
 
 export async function getPlantByPK(pk: string): Promise<PlantTaxon | null> {
   try {
-    // const res = await ddbDocClient.send(new GetCommand({ TableName: TABLE_NAME, Key: { PK: pk } } as any));
-    // return (res.Item as PlantTaxon) ?? null;
+    const res = await ddbDocClient.send(new GetCommand({ TableName: TABLE_NAME, Key: { PK: pk } } as any));
+    return (res.Item as PlantTaxon) ?? null;
+  } catch (err: any) {
+    logger.error(`getPlantByPK exception: ${err.message}`, err);
+    throw err;
+  }
+}
 
+export async function generatePlantDetailsByPK(pk: string): Promise<PlantTaxon | null> {
+  try {
     const plantDetails = await generatePlantDetails(pk);
     return (plantDetails as PlantTaxon) ?? null;
-
   } catch (err: any) {
-    logger.error(`searchPlantByPrefix exception: ${err.message}`, err);
+    logger.error(`generatePlantDetailsByPK exception: ${err.message}`, err);
     throw err;
   }
 }

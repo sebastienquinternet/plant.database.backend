@@ -46,6 +46,11 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref PlantTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: '*'
       Events:
         GetPlantById:
           Type: Api

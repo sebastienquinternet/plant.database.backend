@@ -1,13 +1,17 @@
 import { PlantTaxon } from '../models/plant';
 import { createLogger } from './loggerService';
-import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
+import {
+  BedrockRuntimeClient,
+  ConversationRole,
+  ConverseCommand,
+} from "@aws-sdk/client-bedrock-runtime";
 
 const logger = createLogger({ service: 'ai.plant.generator', ddsource: 'plant.ai', environment: process.env.NODE_ENV || 'dev' });
 
 const BEDROCK_MODEL_ID = process.env.BEDROCK_MODEL_ID || process.env.AWS_BEDROCK_MODEL_ID || 'amazon.nova-micro-v1:0';
 const AWS_REGION = process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || 'ap-southeast-2';
 
-const bedrockClient = new BedrockRuntimeClient({ region: AWS_REGION });
+const client = new BedrockRuntimeClient({ region: AWS_REGION });
 
 const responseStructure = {
   scientificName: '<scientific name>',
@@ -36,9 +40,10 @@ Generate a comprehensive JSON object containing detailed care information and ta
 ## Instructions
 1. Analyze the plant name provided
 2. Research its scientific classification, common names, and care requirements
-3. Compile all information into a structured JSON object following the exact schema below
-4. Assign confidence scores based on the reliability of your information
-5. Soil should be one of: "sandy","loamy","saline","peaty","clay","silt","chalky"
+3. Use full names for scientific classification
+4. Compile all information into a structured JSON object following the exact schema below
+5. soil.value should be one of: "sandy","loamy","saline","peaty","clay","silt","chalky"
+6. Assign confidence scores based on the reliability of your information
 
 ## JSON Schema
 ${JSON.stringify(responseStructure)}
@@ -52,24 +57,24 @@ ${JSON.stringify(responseStructure)}
 
 Plant: ${plant}`;
 
-  logger.info(`Generate plant details using ${BEDROCK_MODEL_ID}: ${plant}`, { prompt });
-  try {
-    const command = new InvokeModelCommand({
-      modelId: BEDROCK_MODEL_ID,
-      contentType: 'application/json',
-      accept: 'application/json',
-      body: JSON.stringify({
-        inputText: prompt,
-        textGenerationConfig: {
-          maxTokenCount: 1000
-        }
-      })
-    });
 
-    const response = await bedrockClient.send(command);
-    const doc = JSON.parse(await response.body.transformToString());
-    logger.success(`Plant details generated using ${BEDROCK_MODEL_ID}: ${plant}`, doc);
-    return doc as PlantTaxon;
+  logger.info(`Generate plant details using ${BEDROCK_MODEL_ID}: ${plant}`, { prompt });
+  const message = {
+    content: [{ text: prompt }],
+    role: ConversationRole.USER,
+  };
+  const request = {
+    modelId: BEDROCK_MODEL_ID,
+    messages: [message],
+    inferenceConfig: {
+      maxTokens: 1000
+    },
+  };
+  try {
+    const command = new ConverseCommand(request);
+    const response = await client.send(command);
+    const text = response.output?.message?.content?.[0]?.text ?? "";
+    return JSON.parse(text) as PlantTaxon;
   } catch (err: any) {
     logger.error(`generatePlantDetails exception: ${err.message}`, err);
     throw err;
