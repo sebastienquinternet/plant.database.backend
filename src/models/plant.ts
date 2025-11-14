@@ -32,4 +32,18 @@ export interface PlantTaxon {
   attributes?: Record<string, any>; // extra info from APIs
   createdAt: string;
   updatedAt: string;
+  images?: {
+    thumbnail?: string;
+    gallery?: string[];
+  };
+}
+
+export interface PlantCard {
+  PK: string;           // full PK with PLANT# prefix
+  id?: string;          // short id matching details.json key
+  scientificName?: string;
+  images?: {
+    thumbnail?: string;
+    gallery?: string[];
+  };
 }

@@ -20,9 +20,9 @@
     "esbuild": "^0.17.19",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
-  }
-  ,
+  },
   "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.931.0",
     "@aws-sdk/client-dynamodb": "^3.487.0",
     "@aws-sdk/lib-dynamodb": "^3.487.0"
   }

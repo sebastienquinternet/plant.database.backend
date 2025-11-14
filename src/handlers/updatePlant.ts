@@ -13,7 +13,7 @@ export const handler = async (event: any) => {
     if (!body) return jsonResponse(400, { message: 'Missing body' });
 
     logger.info(`PUT Plant request: PLANT#${id}`, body);
-    const updated = await updatePlant(id, body as Partial<PlantTaxon>);
+    const updated = await updatePlant(body as Partial<PlantTaxon>);
     if (!updated) {
       logger.info(`PUT Plant response: PLANT#${id}`, { message: 'Plant not found' });
       return jsonResponse(404, { message: 'Plant not found' });

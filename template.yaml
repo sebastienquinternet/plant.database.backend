@@ -43,10 +43,6 @@ Resources:
       Environment:
         Variables:
           PLANT_TABLE: !Ref PlantTable
-          ALIAS_INDEX: AliasIndex
-          ALIAS_GSI_PARTITION_NAME: GSI1PK
-          ALIAS_GSI_PARTITION_VALUE: ALIAS
-          ALIAS_ATTRIBUTE_NAME: alias
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref PlantTable
@@ -79,10 +75,6 @@ Resources:
       Environment:
         Variables:
           PLANT_TABLE: !Ref PlantTable
-          ALIAS_INDEX: AliasIndex
-          ALIAS_GSI_PARTITION_NAME: GSI1PK
-          ALIAS_GSI_PARTITION_VALUE: ALIAS
-          ALIAS_ATTRIBUTE_NAME: alias
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref PlantTable
@@ -107,10 +99,6 @@ Resources:
       Environment:
         Variables:
           PLANT_TABLE: !Ref PlantTable
-          ALIAS_INDEX: AliasIndex
-          ALIAS_GSI_PARTITION_NAME: GSI1PK
-          ALIAS_GSI_PARTITION_VALUE: ALIAS
-          ALIAS_ATTRIBUTE_NAME: alias
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref PlantTable
@@ -135,10 +123,6 @@ Resources:
       Environment:
         Variables:
           PLANT_TABLE: !Ref PlantTable
-          ALIAS_INDEX: AliasIndex
-          ALIAS_GSI_PARTITION_NAME: GSI1PK
-          ALIAS_GSI_PARTITION_VALUE: ALIAS
-          ALIAS_ATTRIBUTE_NAME: alias
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref PlantTable
@@ -160,19 +144,6 @@ Resources:
       AttributeDefinitions:
         - AttributeName: PK
           AttributeType: S
-        - AttributeName: GSI1PK
-          AttributeType: S
-        - AttributeName: alias
-          AttributeType: S
       KeySchema:
         - AttributeName: PK
           KeyType: HASH
-      GlobalSecondaryIndexes:
-        - IndexName: AliasIndex
-          KeySchema:
-            - AttributeName: GSI1PK
-              KeyType: HASH
-            - AttributeName: alias
-              KeyType: RANGE
-          Projection:
-            ProjectionType: ALL
