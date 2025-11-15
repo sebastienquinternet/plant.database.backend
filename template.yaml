@@ -93,6 +93,33 @@ Resources:
             Auth:
               ApiKeyRequired: true
 
+  GeneratePlantFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/handlers/generatePlant.handler
+      Runtime: nodejs18.x
+      CodeUri: .
+      MemorySize: 128
+      Timeout: 10
+      Environment:
+        Variables:
+          PLANT_TABLE: !Ref PlantTable
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: '*'
+      Events:
+        GeneratePlantApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PlantApi
+            Path: /plants/generate
+            Method: GET
+            Auth:
+              ApiKeyRequired: true
+
   UpdatePlantFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -152,3 +179,11 @@ Resources:
       KeySchema:
         - AttributeName: PK
           KeyType: HASH
+
+Outputs:
+  ApiUrl:
+    Description: "API Gateway base URL (prod)"
+    Value: !Sub "https://${PlantApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
+  GeneratePlantFunctionArn:
+    Description: "ARN of the GeneratePlant Lambda"
+    Value: !GetAtt GeneratePlantFunction.Arn

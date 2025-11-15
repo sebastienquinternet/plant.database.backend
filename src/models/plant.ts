@@ -13,9 +13,25 @@ export interface Metric<T = any> {
   confidence: number; // 0.0 - 1.0
 }
 
+export interface PlantImages {
+  thumbnail?: string;
+  gallery?: string[];
+}
+
+export interface PlantAttributes {
+  toxicity?: string;
+  origin?: string;
+  nativeHeight?: string;
+  leafSize?: string;
+  growthRate?: string;
+  maintenanceLevel?: string;
+  airPurifying?: string;
+  petFriendly?: string;
+}
+
 export interface PlantTaxon {
-  PK: string;                       // "PLANT#monstera_deliciosa"
-  scientificName: string;           // "Monstera deliciosa"
+  PK: string;
+  scientificName: string;
   kingdom?: string;
   phylum?: string;
   class?: string;
@@ -23,19 +39,17 @@ export interface PlantTaxon {
   family?: string;
   genus?: string;
   species?: string;
-  aliases: string[];                // ["monstera", "cheese plant", "deliciosa"]
-  watering?: Metric<number>;        // value 1-10
-  light?: Metric<number>;           // value 1-10
-  soil?: Metric<string>;            // value one of SoilType
-  humidity?: Metric<number>;        // value 1-10
-  temperature?: Metric<string>;     // e.g. "18-28°C"
-  attributes?: Record<string, any>; // extra info from APIs
+  aliases: string[];
+  watering?: Metric<number>;
+  light?: Metric<number>;
+  humidity?: Metric<number>;
+  temperature?: Metric<string>;
+  soil?: Metric<string>;
+  popularity?: Metric<number>;   // using number since 1–100
+  attributes?: PlantAttributes;
+  images?: PlantImages;
   createdAt: string;
   updatedAt: string;
-  images?: {
-    thumbnail?: string;
-    gallery?: string[];
-  };
 }
 
 export interface PlantCard {

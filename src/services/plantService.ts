@@ -83,9 +83,10 @@ export async function putPlant(body: Partial<PlantTaxon>): Promise<PlantTaxon> {
     aliases,
     watering: body.watering,
     light: body.light,
-    soil: body.soil,
     humidity: body.humidity,
     temperature: body.temperature,
+    popularity: body.popularity,
+    soil: body.soil,
     attributes: body.attributes,
     createdAt: now,
     updatedAt: now
