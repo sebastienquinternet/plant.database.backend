@@ -24,7 +24,6 @@ const path = require('path');
 // ];
 
 const families = [
-  // "Orchidaceae","Lamiaceae","Apiaceae","Rutaceae","Fabaceae",
   // "Poaceae","Solanaceae","Cucurbitaceae","Myrtaceae","Euphorbiaceae",
   // "Asteraceae","Rubiaceae","Gesneriaceae","Begoniaceae","Crassulaceae",
   // "Cactaceae"
