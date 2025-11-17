@@ -6,18 +6,19 @@ const logger = createLogger({ service: 'plant.database.backend', ddsource:'plant
 
 export const handler = async (event: any) => {
   logger.info('handler_start', { event });
+  const childLogger = logger.child({ requestId: event.requestContext.requestId });
   try {
     const body = event?.body ? JSON.parse(event.body) : null;
     if (!body) {
-      logger.warn('missing_body', { event });
+      childLogger.warn('missing_body', { event });
       return jsonResponse(400, { message: 'Missing body' });
     }
-    logger.info('putPlant_call', { body });
-    const created = await putPlant(body as Partial<PlantTaxon>);
-    logger.success('plant_created', { created });
+    childLogger.info('putPlant_call', { body });
+    const created = await putPlant(body as Partial<PlantTaxon>, childLogger);
+    childLogger.success('plant_created', { created });
     return jsonResponse(201, { plant: created });
   } catch (err: any) {
-    logger.error('handler_error', { error: err });
+    childLogger.error('handler_error', { error: err });
     return jsonResponse(500, { message: 'Failed to create plant' });
   }
 };

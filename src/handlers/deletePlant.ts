@@ -5,22 +5,23 @@ const logger = createLogger({ service: 'plant.database.backend', ddsource:'plant
 
 export const handler = async (event: any) => {
   logger.info('handler_start', { event });
+  const childLogger = logger.child({ requestId: event.requestContext.requestId });
   const id = event?.pathParameters?.id;
   if (!id) {
-    logger.warn('missing_id', { event });
+    childLogger.warn('missing_id', { event });
     return jsonResponse(400, { message: 'Missing id in path' });
   }
   try {
-    logger.info('deletePlant_call', { id });
-    const ok = await deletePlant(id);
+    childLogger.info('deletePlant_call', { id });
+    const ok = await deletePlant(id, childLogger);
     if (!ok) {
-      logger.info('plant_not_found', { id });
+      childLogger.info('plant_not_found', { id });
       return jsonResponse(404, { message: 'Plant not found' });
     }
-    logger.success('plant_deleted', { id });
+    childLogger.success('plant_deleted', { id });
     return jsonResponse(204, null);
   } catch (err: any) {
-    logger.error('handler_error', { error: err });
+    childLogger.error('handler_error', { error: err });
     return jsonResponse(500, { message: 'Failed to delete plant' });
   }
 };

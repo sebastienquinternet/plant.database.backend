@@ -1,12 +1,9 @@
 import { PlantTaxon } from '../models/plant';
-import { createLogger } from './loggerService';
 import {
   BedrockRuntimeClient,
   ConversationRole,
   ConverseCommand,
 } from "@aws-sdk/client-bedrock-runtime";
-
-const logger = createLogger({ service: 'ai.plant.generator', ddsource: 'plant.ai', environment: process.env.NODE_ENV || 'dev' }).child({ class: 'aiPlantService' });
 
 const BEDROCK_MODEL_ID = process.env.BEDROCK_MODEL_ID || process.env.AWS_BEDROCK_MODEL_ID || 'amazon.nova-micro-v1:0';
 const AWS_REGION = process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || 'ap-southeast-2';
@@ -35,39 +32,7 @@ const responseStructure = {
   },
 }
 
-// const responseStructure = {
-// 	scientificName: "<scientific name>",
-// 	kingdom: "<kingdom>",
-// 	phylum: "<phylum>",
-// 	class: "<class>",
-// 	order: "<order>",
-// 	family: "<family>",
-// 	genus: "<genus>",
-// 	species: "<species>",
-// 	aliases: ["<common names>"],
-// 	watering: {value: 1-10, confidence: 0-1},
-// 	light: {value: 1-10, confidence: 0-1},
-// 	humidity: {value: 1-10, confidence: 0-1},
-// 	temperature: {value: "°C range", confidence: 0-1},
-//   popularity: { value: 1-100, confidence: 0-1 },
-// 	soil: {value: "<soil>", confidence: 0-1},
-//   attributes: {
-//     toxicity: "<toxicity>",
-//     origin: "<origin>",
-//     nativeHeight: "<nativeHeight>",
-//     leafSize: "leafSize",
-//     growthRate: "<growthRate>",
-//     maintenanceLevel: "<maintenanceLevel>",
-//     airPurifying: "<airPurifying>",
-//     petFriendly: "<petFriendly>"
-//   },
-// 	images: {
-// 		thumbnail: "<URL to a thumbnail image>",
-// 		gallery: ["<URL>", "<URL>", "..."]
-// 	},
-// }
-
-export async function generatePlantDetails(plant: string): Promise<PlantTaxon> {
+export async function generatePlantDetails(plant: string, logger: any): Promise<PlantTaxon> {
   logger.info('generatePlantDetails_start', { plant });
   const prompt = `# Plant Care Information Generator
 

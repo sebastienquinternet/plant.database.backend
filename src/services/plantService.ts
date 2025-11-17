@@ -2,10 +2,8 @@ import { ddbDocClient } from './dynamoClient';
 import { generatePlantDetails } from './aiPlantService';
 import { GetCommand, PutCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
 import { PlantTaxon, PlantCard } from '../models/plant';
-import { createLogger } from './loggerService';
 import aliases from '../data/aliases.json';
 import details from '../data/details.json';
-const logger = createLogger({ service: 'plant.database.backend', ddsource:'plant.database', environment: 'dev' }).child({ class: 'plantService' });
 
 const TABLE_NAME = process.env.PLANT_TABLE || 'PlantTaxon';
 
@@ -17,7 +15,8 @@ function slugifyName(name: string) {
   .replace(/^_|_$/g, '');
 }
 
-export async function getPlantPKsByAliasPrefix(prefix: string): Promise<string[]> {
+export async function getPlantPKsByAliasPrefix(prefix: string, logger: any): Promise<string[]> {
+  logger.info('getPlantPKsByAliasPrefix_start', { prefix });
   const lower = prefix.toLowerCase();
   const matches = new Set<string>();
   for (const [alias, pks] of Object.entries(aliases as Record<string, string[]>)) {
@@ -28,11 +27,13 @@ export async function getPlantPKsByAliasPrefix(prefix: string): Promise<string[]
       matches.add(`PLANT#${shortPk}`);
     }
   }
+  logger.info('getPlantPKsByAliasPrefix_success', { prefix, count: matches.size });
   return Array.from(matches);
 }
 
-export async function searchPlantByPrefix(prefix: string): Promise<PlantCard[]> {
-  const pks = await getPlantPKsByAliasPrefix(prefix);
+export async function searchPlantByPrefix(prefix: string, logger: any): Promise<PlantCard[]> {
+  logger.info('searchPlantByPrefix_start', { prefix });
+  const pks = await getPlantPKsByAliasPrefix(prefix, logger);
 
   const cardsObj: Record<string, PlantCard> = {};
   for (const pk of pks) {
@@ -40,10 +41,11 @@ export async function searchPlantByPrefix(prefix: string): Promise<PlantCard[]> 
     const det = (details as Record<string, any> | undefined)?.[shortPk];
     cardsObj[shortPk] = det;
   }
+  logger.info('searchPlantByPrefix_success', { prefix, count: Object.keys(cardsObj).length });
   return Object.values(cardsObj);
 }
 
-export async function getPlantByPK(pk: string): Promise<PlantTaxon | null> {
+export async function getPlantByPK(pk: string, logger: any): Promise<PlantTaxon | null> {
   logger.info('getPlantByPK_start', { pk });
   try {
     const res = await ddbDocClient.send(new GetCommand({ TableName: TABLE_NAME, Key: { PK: pk } } as any));
@@ -55,7 +57,7 @@ export async function getPlantByPK(pk: string): Promise<PlantTaxon | null> {
   }
 }
 
-export async function generatePlantDetailsByPK(pk: string): Promise<PlantTaxon | null> {
+export async function generatePlantDetailsByPK(pk: string, logger: any): Promise<PlantTaxon | null> {
   logger.info('generatePlantDetailsByPK_start', { pk });
   try {
     const plantDetails = await generatePlantDetails(pk);
@@ -67,7 +69,7 @@ export async function generatePlantDetailsByPK(pk: string): Promise<PlantTaxon |
   }
 }
 
-export async function putPlant(body: Partial<PlantTaxon>): Promise<PlantTaxon> {
+export async function putPlant(body: Partial<PlantTaxon>, logger: any): Promise<PlantTaxon> {
   logger.info('putPlant_start', { body });
   const scientificName = body.scientificName || 'unnamed';
   const id = (body.PK && body.PK.replace(/^PLANT#/, '')) || slugifyName(scientificName);
@@ -102,17 +104,17 @@ export async function putPlant(body: Partial<PlantTaxon>): Promise<PlantTaxon> {
   return mainItem as PlantTaxon;
 }
 
-export async function updatePlant(body: Partial<PlantTaxon>): Promise<PlantTaxon> {
+export async function updatePlant(body: Partial<PlantTaxon>, logger: any): Promise<PlantTaxon> {
   logger.info('updatePlant_start', { body });
   if (!body.PK) {
     logger.warn('updatePlant_missing_PK', { body });
     return {} as PlantTaxon;
   }
-  await deletePlant(body.PK);
-  return putPlant(body);
+  await deletePlant(body.PK, logger);
+  return putPlant(body, logger);
 }
 
-export async function deletePlant(pkId: string): Promise<boolean> {
+export async function deletePlant(pkId: string, logger: any): Promise<boolean> {
   const pk = pkId.startsWith('PLANT#') ? pkId : `PLANT#${pkId}`;
   logger.info('deletePlant_start', { pk });
   try {

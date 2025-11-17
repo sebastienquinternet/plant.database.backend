@@ -6,27 +6,28 @@ const logger = createLogger({ service: 'plant.database.backend', ddsource:'plant
 
 export const handler = async (event: any) => {
   logger.info('handler_start', { event });
+  const childLogger = logger.child({ requestId: event.requestContext.requestId });
   const id = event?.pathParameters?.id;
   if (!id) {
-    logger.warn('missing_id', { event });
+    childLogger.warn('missing_id', { event });
     return jsonResponse(400, { message: 'Missing id in path' });
   }
   try {
     const body = event?.body ? JSON.parse(event.body) : null;
     if (!body) {
-      logger.warn('missing_body', { event });
+      childLogger.warn('missing_body', { event });
       return jsonResponse(400, { message: 'Missing body' });
     }
-    logger.info('updatePlant_call', { id, body });
-    const updated = await updatePlant(body as Partial<PlantTaxon>);
+    childLogger.info('updatePlant_call', { id, body });
+    const updated = await updatePlant(body as Partial<PlantTaxon>, childLogger);
     if (!updated) {
-      logger.info('plant_not_found', { id });
+      childLogger.info('plant_not_found', { id });
       return jsonResponse(404, { message: 'Plant not found' });
     }
-    logger.success('plant_updated', { id, updated });
+    childLogger.success('plant_updated', { id, updated });
     return jsonResponse(200, { plant: updated });
   } catch (err: any) {
-    logger.error('handler_error', { error: err });
+    childLogger.error('handler_error', { error: err });
     return jsonResponse(500, { message: 'Failed to update plant' });
   }
 };

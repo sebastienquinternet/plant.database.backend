@@ -5,22 +5,23 @@ const logger = createLogger({ service: 'plant.database.backend', ddsource:'plant
 
 export const handler = async (event: any) => {
   logger.info('handler_start', { event });
+  const childLogger = logger.child({ requestId: event.requestContext.requestId });
   const q = event?.queryStringParameters?.q;
   if (!q) {
-    logger.warn('missing_query_param', { event });
+    childLogger.warn('missing_query_param', { event });
     return jsonResponse(400, { message: 'Missing query parameter' });
   }
   try {
-    logger.info('generatePlantDetailsByPK_call', { q });
-    const plant = await generatePlantDetailsByPK(q);
+    childLogger.info('generatePlantDetailsByPK_call', { q });
+    const plant = await generatePlantDetailsByPK(q, childLogger);
     if (!plant) {
-      logger.info('no_details_generated', { q });
+      childLogger.info('no_details_generated', { q });
       return jsonResponse(404, { message: 'No details generated' });
     }
-    logger.success('plant_details_generated', { q, plant });
+    childLogger.success('plant_details_generated', { q, plant });
     return jsonResponse(200, { plant });
   } catch (err: any) {
-    logger.error('handler_error', { error: err });
+    childLogger.error('handler_error', { error: err });
     return jsonResponse(500, { message: 'Failed to generate plant details' });
   }
 };
