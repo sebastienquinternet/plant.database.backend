@@ -6,7 +6,7 @@ import {
   ConverseCommand,
 } from "@aws-sdk/client-bedrock-runtime";
 
-const logger = createLogger({ service: 'ai.plant.generator', ddsource: 'plant.ai', environment: process.env.NODE_ENV || 'dev' });
+const logger = createLogger({ service: 'ai.plant.generator', ddsource: 'plant.ai', environment: process.env.NODE_ENV || 'dev' }).child({ class: 'aiPlantService' });
 
 const BEDROCK_MODEL_ID = process.env.BEDROCK_MODEL_ID || process.env.AWS_BEDROCK_MODEL_ID || 'amazon.nova-micro-v1:0';
 const AWS_REGION = process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || 'ap-southeast-2';
@@ -68,6 +68,7 @@ const responseStructure = {
 // }
 
 export async function generatePlantDetails(plant: string): Promise<PlantTaxon> {
+  logger.info('generatePlantDetails_start', { plant });
   const prompt = `# Plant Care Information Generator
 
 ## Task
@@ -95,8 +96,7 @@ ${JSON.stringify(responseStructure)}
 
 Plant: ${plant}`;
 
-
-  logger.info(`Generate plant details using ${BEDROCK_MODEL_ID}: ${plant}`, { prompt });
+  logger.debug('bedrock_prompt', { prompt });
   const message = {
     content: [{ text: prompt }],
     role: ConversationRole.USER,
@@ -112,9 +112,10 @@ Plant: ${plant}`;
     const command = new ConverseCommand(request);
     const response = await client.send(command);
     const text = response.output?.message?.content?.[0]?.text ?? "";
+    logger.info('bedrock_response', { text });
     return JSON.parse(text) as PlantTaxon;
   } catch (err: any) {
-    logger.error(`generatePlantDetails exception: ${err.message}`, err);
+    logger.error('generatePlantDetails_error', { error: err });
     throw err;
   }
 }

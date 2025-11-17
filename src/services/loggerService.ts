@@ -39,11 +39,17 @@ function levelPriority(level: string) {
   return map[level] ?? 4;
 }
 
-export function createLogger(opts: LoggerOptions = {}) {
+
+function mergeMeta(base: any, extra: any) {
+  return { ...(base || {}), ...(extra || {}) };
+}
+
+export function createLogger(opts: LoggerOptions = {}, context: Record<string, unknown> = {}) {
   const level = (opts.level || process.env.LOG_LEVEL || DEFAULT_LEVEL).toLowerCase();
   const service = opts.service || process.env.SERVICE_NAME || undefined;
   const ddsource = opts.ddsource || process.env.DD_SOURCE || undefined;
   const env = opts.environment || process.env.ENVIRONMENT || 'local';
+  const baseContext = { ...context };
 
   function shouldLog(msgLevel: string) {
     return levelPriority(msgLevel) <= levelPriority(level);
@@ -93,37 +99,31 @@ export function createLogger(opts: LoggerOptions = {}) {
     return safeStringify(out);
   }
 
-  return {
-    fatal: (message: unknown, meta?: Record<string, unknown>) => {
-      if (!shouldLog('fatal')) return;
-      // fatal -> stderr
-      console.error(formatOutput('fatal', message, meta));
-    },
-    error: (message: unknown, meta?: Record<string, unknown>) => {
-      if (!shouldLog('error')) return;
-      console.error(formatOutput('error', message, meta));
-    },
-    warn: (message: unknown, meta?: Record<string, unknown>) => {
-      if (!shouldLog('warn')) return;
-      console.warn(formatOutput('warn', message, meta));
-    },
-    info: (message: unknown, meta?: Record<string, unknown>) => {
-      if (!shouldLog('info')) return;
-      console.log(formatOutput('info', message, meta));
-    },
-    success: (message: unknown, meta?: Record<string, unknown>) => {
-      if (!shouldLog('success')) return;
-      console.log(formatOutput('success', message, meta));
-    },
-    debug: (message: unknown, meta?: Record<string, unknown>) => {
-      if (!shouldLog('debug')) return;
-      console.log(formatOutput('debug', message, meta));
-    },
-    trace: (message: unknown, meta?: Record<string, unknown>) => {
-      if (!shouldLog('trace')) return;
-      console.log(formatOutput('trace', message, meta));
-    },
+  function log(level: LogLevel, message: unknown, meta?: Record<string, unknown>) {
+    if (!shouldLog(level)) return;
+    const merged = mergeMeta(baseContext, meta);
+    const out = formatOutput(level, message, merged);
+    if (['fatal', 'error'].includes(level)) {
+      console.error(out);
+    } else if (level === 'warn') {
+      console.warn(out);
+    } else {
+      console.log(out);
+    }
+  }
+
+  const logger = {
+    fatal: (message: unknown, meta?: Record<string, unknown>) => log('fatal', message, meta),
+    error: (message: unknown, meta?: Record<string, unknown>) => log('error', message, meta),
+    warn: (message: unknown, meta?: Record<string, unknown>) => log('warn', message, meta),
+    info: (message: unknown, meta?: Record<string, unknown>) => log('info', message, meta),
+    success: (message: unknown, meta?: Record<string, unknown>) => log('success', message, meta),
+    debug: (message: unknown, meta?: Record<string, unknown>) => log('debug', message, meta),
+    trace: (message: unknown, meta?: Record<string, unknown>) => log('trace', message, meta),
+    log,
+    child: (ctx: Record<string, unknown>) => createLogger(opts, mergeMeta(baseContext, ctx)),
   };
+  return logger;
 }
 
 export default createLogger;

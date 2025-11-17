@@ -5,7 +5,7 @@ import { PlantTaxon, PlantCard } from '../models/plant';
 import { createLogger } from './loggerService';
 import aliases from '../data/aliases.json';
 import details from '../data/details.json';
-const logger = createLogger({ service: 'plant.database.backend', ddsource:'plant.database', environment: 'dev' });
+const logger = createLogger({ service: 'plant.database.backend', ddsource:'plant.database', environment: 'dev' }).child({ class: 'plantService' });
 
 const TABLE_NAME = process.env.PLANT_TABLE || 'PlantTaxon';
 
@@ -44,26 +44,31 @@ export async function searchPlantByPrefix(prefix: string): Promise<PlantCard[]> 
 }
 
 export async function getPlantByPK(pk: string): Promise<PlantTaxon | null> {
+  logger.info('getPlantByPK_start', { pk });
   try {
     const res = await ddbDocClient.send(new GetCommand({ TableName: TABLE_NAME, Key: { PK: pk } } as any));
+    logger.info('getPlantByPK_success', { pk, found: !!res.Item });
     return (res.Item as PlantTaxon) ?? null;
   } catch (err: any) {
-    logger.error(`getPlantByPK exception: ${err.message}`, err);
+    logger.error('getPlantByPK_error', { pk, error: err });
     throw err;
   }
 }
 
 export async function generatePlantDetailsByPK(pk: string): Promise<PlantTaxon | null> {
+  logger.info('generatePlantDetailsByPK_start', { pk });
   try {
     const plantDetails = await generatePlantDetails(pk);
+    logger.info('generatePlantDetailsByPK_success', { pk });
     return (plantDetails as PlantTaxon) ?? null;
   } catch (err: any) {
-    logger.error(`generatePlantDetailsByPK exception: ${err.message}`, err);
+    logger.error('generatePlantDetailsByPK_error', { pk, error: err });
     throw err;
   }
 }
 
 export async function putPlant(body: Partial<PlantTaxon>): Promise<PlantTaxon> {
+  logger.info('putPlant_start', { body });
   const scientificName = body.scientificName || 'unnamed';
   const id = (body.PK && body.PK.replace(/^PLANT#/, '')) || slugifyName(scientificName);
   const pk = `PLANT#${id}`;
@@ -93,27 +98,37 @@ export async function putPlant(body: Partial<PlantTaxon>): Promise<PlantTaxon> {
   };
 
   await ddbDocClient.send(new PutCommand({ TableName: TABLE_NAME, Item: mainItem } as any));
+  logger.success('putPlant_success', { pk });
   return mainItem as PlantTaxon;
 }
 
 export async function updatePlant(body: Partial<PlantTaxon>): Promise<PlantTaxon> {
-  if (!body.PK) return {} as PlantTaxon;
-  deletePlant(body.PK);
+  logger.info('updatePlant_start', { body });
+  if (!body.PK) {
+    logger.warn('updatePlant_missing_PK', { body });
+    return {} as PlantTaxon;
+  }
+  await deletePlant(body.PK);
   return putPlant(body);
 }
 
 export async function deletePlant(pkId: string): Promise<boolean> {
   const pk = pkId.startsWith('PLANT#') ? pkId : `PLANT#${pkId}`;
+  logger.info('deletePlant_start', { pk });
   try {
     await ddbDocClient.send(new DeleteCommand({
       TableName: TABLE_NAME,
       Key: { PK: pk },
       ConditionExpression: 'attribute_exists(PK)'
     } as any));
+    logger.success('deletePlant_success', { pk });
     return true;
   } catch (err: any) {
-    if (err?.name === 'ConditionalCheckFailedException') return false;
-    logger.error(`deletePlant exception: ${err.message}`, err);
+    if (err?.name === 'ConditionalCheckFailedException') {
+      logger.warn('deletePlant_not_found', { pk });
+      return false;
+    }
+    logger.error('deletePlant_error', { pk, error: err });
     throw err;
   }
 }
