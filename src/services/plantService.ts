@@ -60,7 +60,7 @@ export async function getPlantByPK(pk: string, logger: any): Promise<PlantTaxon 
 export async function generatePlantDetailsByPK(pk: string, logger: any): Promise<PlantTaxon | null> {
   logger.info('generatePlantDetailsByPK_start', { pk });
   try {
-    const plantDetails = await generatePlantDetails(pk);
+    const plantDetails = await generatePlantDetails(pk, logger);
     logger.info('generatePlantDetailsByPK_success', { pk });
     return (plantDetails as PlantTaxon) ?? null;
   } catch (err: any) {

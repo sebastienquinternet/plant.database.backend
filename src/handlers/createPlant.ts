@@ -5,8 +5,8 @@ import { createLogger } from '../services/loggerService';
 const logger = createLogger({ service: 'plant.database.backend', ddsource:'plant.database', environment: 'dev' }).child({ class: 'createPlant' });
 
 export const handler = async (event: any) => {
-  logger.info('handler_start', { event });
   const childLogger = logger.child({ requestId: event.requestContext.requestId });
+  logger.info('handler_start', { event });
   try {
     const body = event?.body ? JSON.parse(event.body) : null;
     if (!body) {

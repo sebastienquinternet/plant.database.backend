@@ -12,7 +12,6 @@ const client = new BedrockRuntimeClient({ region: AWS_REGION });
 
 const responseStructure = {
 	scientificName: "<scientific name>",
-	species: "<species>",
 	aliases: ["<common names>"],
 	watering: {value: 1-10, confidence: 0-1},
 	light: {value: 1-10, confidence: 0-1},

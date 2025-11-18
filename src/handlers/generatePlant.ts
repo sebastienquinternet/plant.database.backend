@@ -4,8 +4,8 @@ import { createLogger } from '../services/loggerService';
 const logger = createLogger({ service: 'plant.database.backend', ddsource:'plant.database', environment: 'dev' }).child({ class: 'generatePlant' });
 
 export const handler = async (event: any) => {
-  logger.info('handler_start', { event });
   const childLogger = logger.child({ requestId: event.requestContext.requestId });
+  logger.info('handler_start', { event });
   const q = event?.queryStringParameters?.q;
   if (!q) {
     childLogger.warn('missing_query_param', { event });
