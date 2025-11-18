@@ -53,11 +53,7 @@ export interface PlantTaxon {
 }
 
 export interface PlantCard {
-  PK: string;           // full PK with PLANT# prefix
   id?: string;          // short id matching details.json key
   scientificName?: string;
-  images?: {
-    thumbnail?: string;
-    gallery?: string[];
-  };
+  thumbnail?: string;
 }
