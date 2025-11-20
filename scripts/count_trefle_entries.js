@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const DIRECTORY_PATH = path.join(__dirname, 'data/Trefle');
+const DIRECTORY_PATH = path.join(__dirname, 'data/GBIF');
 
 function countEntriesInFile(filePath, counts) {
   const fileStream = fs.createReadStream(filePath);

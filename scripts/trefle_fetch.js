@@ -24,9 +24,6 @@ const path = require('path');
 // ];
 
 const families = [
-  // "Asteraceae", // 49k
-  // "Rubiaceae", // 17k
-  // "Cactaceae" // 3771
 ];
 
 const TREFLE_TOKEN = process.env.TREFLE_TOKEN || '';
@@ -36,7 +33,7 @@ if (!TREFLE_TOKEN) {
 }
 
 const API_BASE_TREFLE = 'https://trefle.io/api/v1';
-const OUT_FILE = process.env.OUT_FILE || 'data/Crassulaceae.ndjson';
+const OUT_FILE = process.env.OUT_FILE || 'data/tresfle_fetch_output.ndjson';
 
 function sleep(ms) { return new Promise(res => setTimeout(res, ms)); }
 
