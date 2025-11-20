@@ -11,52 +11,51 @@ const AWS_REGION = process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || '
 const client = new BedrockRuntimeClient({ region: AWS_REGION });
 
 const responseStructure = {
-	scientificName: "<scientific name>",
-	aliases: ["<common names>"],
-	watering: {value: 1-10, confidence: 0-1},
-	light: {value: 1-10, confidence: 0-1},
-	humidity: {value: 1-10, confidence: 0-1},
-	temperature: {value: "°C range", confidence: 0-1},
+  scientificName: "<scientific name>",
+  aliases: ["<common names>"],
+  watering: { value: 1-10, confidence: 0-1 },
+  light: { value: 1-10, confidence: 0-1 },
+  humidity: { value: 1-10, confidence: 0-1 },
   popularity: { value: 1-100, confidence: 0-1 },
-	soil: {value: "<soil>", confidence: 0-1},
-  attributes: {
-    toxicity: "<toxicity>",
-    origin: "<origin>",
-    nativeHeight: "<nativeHeight>",
-    leafSize: "leafSize",
-    growthRate: "<growthRate>",
-    maintenanceLevel: "<maintenanceLevel>",
-    airPurifying: "<airPurifying>",
-    petFriendly: "<petFriendly>"
-  },
-}
+  soil: { value: "sandy | loamy | saline | peaty | clay | silt | chalky", confidence: 0-1 },
+  lifeCycle: { value: "annual | biennial | perennial", confidence: 0-1 },
+  leafRetention: { value: "evergreen | deciduous | semi-deciduous", confidence: 0-1 },
+  rootType: { value: "shallow | deep | fibrous | rhizome | tuberous", confidence: 0-1 },
+  repottingFrequency: { value: "yearly | 2-3 years | rarely", confidence: 0-1 },
+  feeding: { value: "light | moderate | heavy", confidence: 0-1 },
+  toxicity: { value: "<toxicity>", confidence: 0-1 },
+  origin: { value: "<origin>", confidence: 0-1 },
+  nativeHeight: { value: "<height in metres>", confidence: 0-1 },
+  leafSize: { value: "<size>", confidence: 0-1 },
+  growthRate: { value: "<growthRate>", confidence: 0-1 },
+  maintenanceLevel: { value: "<maintenanceLevel>", confidence: 0-1 },
+  airPurifying: { value: "<yes/no/strong>", confidence: 0-1 },
+  petFriendly: { value: "<yes/no>", confidence: 0-1 },
+  frostTolerance: { value: "<minimum °C>", confidence: 0-1 },
+  heatTolerance: { value: "<maximum °C>", confidence: 0-1 },
+};
 
 export async function generatePlantDetails(plant: string, logger: any): Promise<PlantTaxon> {
   logger.info('generatePlantDetails_start', { plant });
-  const prompt = `# Plant Care Information Generator
+  const prompt = `Task
+Generate a single JSON object containing detailed care information, tolerances, and taxonomy for the specified plant.
 
-## Task
-Generate a comprehensive JSON object containing detailed care information and taxonomic classification for the specified plant.
+Instructions
+1. Analyse the provided plant name.
+2. Fill the JSON using the exact schema below.
+3. Assign confidence scores (0–1) based on reliability.
+4. Estimate how well-known or commonly owned the plant is and populate popularity.
+5. Provide up to 5 aliases using the most commonly used names.
+6. Output only the JSON object.
 
-## Instructions
-1. Analyze the plant name provided
-2. Research its scientific classification, common names, and care requirements
-3. Use full names for scientific classification
-4. Compile all information into a structured JSON object following the exact schema below
-5. soil.value should be one of: "sandy","loamy","saline","peaty","clay","silt","chalky"
-6. Assign confidence scores based on the reliability of your information
-7. Estimate how commonly the plant is known or owned by the general public and populate the "popularity" field
-
-## JSON Schema
+JSON Schema
 ${JSON.stringify(responseStructure)}
 
-## Important Rules
-- Return ONLY the JSON object without any explanation, preamble, or additional text
-- For 1-10 numeric fields (watering, light, humidity): 1 is lowest and 10 is highest
-- For 1-100 numeric fields (popularity): 1 is lowest and 100 is highest
-- For confidence scores: use a scale of 0-1 where 0 is no confidence and 1 is complete confidence
-- If uncertain about any value, provide your best estimate but assign a lower confidence score
-- Ensure all required fields are populated, even with best estimates when exact information is unavailable
+Rules
+- Return only the JSON.
+- Use 1–10 for watering, light, humidity.
+- Use 1–100 for popularity.
+- If uncertain, estimate and lower the confidence.
 
 Plant: ${plant}`;
 

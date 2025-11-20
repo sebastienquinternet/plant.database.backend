@@ -1,32 +1,23 @@
-export enum SoilType {
-  Loamy = 'loamy',
-  Clay = 'clay',
-  Sandy = 'sandy',
-  Peaty = 'peaty',
-  Saline = 'saline',
-  Chalky = 'chalky',
-  Silty = 'silty'
-}
-
 export interface Metric<T = any> {
   value: T;
-  confidence: number; // 0.0 - 1.0
+  confidence: number;
 }
 
-export interface PlantImages {
-  thumbnail?: string;
-  gallery?: string[];
-}
+export type SoilValue = 'sandy' | 'loamy' | 'saline' | 'peaty' | 'clay' | 'silt' | 'chalky';
+export type LifeCycleValue = 'annual' | 'biennial' | 'perennial';
+export type LeafRetentionValue = 'evergreen' | 'deciduous' | 'semi-deciduous';
+export type RootTypeValue = 'shallow' | 'deep' | 'fibrous' | 'rhizome' | 'tuberous';
+export type RepottingFrequencyValue = 'yearly' | '2-3 years' | 'rarely';
+export type FeedingValue = 'light' | 'moderate' | 'heavy';
+export type AirPurifyingValue = 'yes' | 'no' | 'strong';
+export type PetFriendlyValue = 'yes' | 'no';
 
-export interface PlantAttributes {
-  toxicity?: string;
-  origin?: string;
-  nativeHeight?: string;
-  leafSize?: string;
-  growthRate?: string;
-  maintenanceLevel?: string;
-  airPurifying?: string;
-  petFriendly?: string;
+export interface PlantImage {
+  small: string;
+  regular: string;
+  alt?: string | null;
+  author?: string | null;
+  source?: string | null;
 }
 
 export interface PlantTaxon {
@@ -43,17 +34,30 @@ export interface PlantTaxon {
   watering?: Metric<number>;
   light?: Metric<number>;
   humidity?: Metric<number>;
-  temperature?: Metric<string>;
-  soil?: Metric<string>;
-  popularity?: Metric<number>;   // using number since 1–100
-  attributes?: PlantAttributes;
-  images?: PlantImages;
+  popularity?: Metric<number>;
+  soil?: Metric<SoilValue>;
+  lifeCycle?: Metric<LifeCycleValue>;
+  leafRetention?: Metric<LeafRetentionValue>;
+  rootType?: Metric<RootTypeValue>;
+  repottingFrequency?: Metric<RepottingFrequencyValue>;
+  feeding?: Metric<FeedingValue>;
+  toxicity?: Metric<string>;
+  origin?: Metric<string>;
+  nativeHeight?: Metric<string>;
+  leafSize?: Metric<string>;
+  growthRate?: Metric<string>;
+  maintenanceLevel?: Metric<string>;
+  airPurifying?: Metric<AirPurifyingValue>;
+  petFriendly?: Metric<PetFriendlyValue>;
+  frostTolerance?: Metric<string>;
+  heatTolerance?: Metric<string>;
+  images?: PlantImage[];
   createdAt: string;
   updatedAt: string;
 }
 
 export interface PlantCard {
-  id?: string;          // short id matching details.json key
+  id?: string;
   scientificName?: string;
   thumbnail?: string;
 }
