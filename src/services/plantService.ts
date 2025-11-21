@@ -80,6 +80,7 @@ export async function putPlant(body: Partial<PlantTaxon>, logger: any): Promise<
   const mainItem: any = {
     PK: pk,
     scientificName,
+    commonName: body.commonName,
     kingdom: body.kingdom,
     phylum: body.phylum,
     class: body.class,
@@ -108,7 +109,7 @@ export async function putPlant(body: Partial<PlantTaxon>, logger: any): Promise<
     petFriendly: body.petFriendly,
     frostTolerance: body.frostTolerance,
     heatTolerance: body.heatTolerance,
-    images: body.images,
+    // images: body.images,
     createdAt: now,
     updatedAt: now
   };

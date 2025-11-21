@@ -10,3 +10,4 @@ coverage/
 .idea/
 copilot-instructions.txt
 scripts/data
+src/data

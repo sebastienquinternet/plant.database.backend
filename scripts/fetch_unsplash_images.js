@@ -5,7 +5,7 @@ const GBIF_FOLDER = path.join(__dirname, 'data/GBIF');
 const UNSPLASH_FOLDER = path.join(__dirname, 'data/Unsplash');
 const UNSPLASH_API = 'https://api.unsplash.com/search/photos';
 const UNSPLASH_KEY = process.env.UNSPLASH_ACCESS_KEY;
-const REQUEST_DELAY_MS = 90 * 1000; // 92 seconds between API calls
+const REQUEST_DELAY_MS = 90 * 1000; // 90 seconds between API calls
 const MAX_IMAGES = 10;
 const MAX_RETRIES = 3;
 
@@ -19,7 +19,7 @@ function sleep(ms) {
 }
 
 async function fetchUnsplashImages(scientificName, commonName, attempt = 1) {
-  const query = `${scientificName} ${commonName} Plant`;
+  const query = `${scientificName} ${commonName}`;
   const url = `${UNSPLASH_API}?query=${encodeURIComponent(query)}&per_page=${MAX_IMAGES}&orientation=landscape&content_filter=high&client_id=${UNSPLASH_KEY}`;
 
   try {

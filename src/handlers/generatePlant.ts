@@ -19,7 +19,7 @@ export const handler = async (event: any) => {
       return jsonResponse(404, { message: 'No details generated' });
     }
     childLogger.success('plant_details_generated', { q, plant });
-    return jsonResponse(200, { plant });
+    return jsonResponse(200, plant);
   } catch (err: any) {
     childLogger.error('handler_error', { error: err });
     return jsonResponse(500, { message: 'Failed to generate plant details' });

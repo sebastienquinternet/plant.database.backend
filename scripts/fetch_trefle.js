@@ -15,16 +15,72 @@
 const fs = require('fs').promises;
 const path = require('path');
 
-// const families = [
-//   "Araceae","Arecaceae","Asparagaceae","Moraceae","Rosaceae",
-//   "Orchidaceae","Lamiaceae","Apiaceae","Rutaceae","Fabaceae",
-//   "Poaceae","Solanaceae","Cucurbitaceae","Myrtaceae","Euphorbiaceae",
-//   "Asteraceae","Rubiaceae","Gesneriaceae","Begoniaceae","Crassulaceae",
-//   "Cactaceae"
-// ];
-
 const families = [
+  // "Amaryllidaceae", // 2938
+  // "Anacardiaceae", // 1364
+  // "Apiaceae",
+  // "Apocynaceae", // 8844
+  // "Araceae",
+  // "Araliaceae", // 2556
+  // "Arecaceae",
+  // "Asparagaceae",
+  // "Asteraceae",
+  // "Begoniaceae",
+  // "Bignoniaceae", // 1090
+  // "Boraginaceae", // 4893
+  // "Brassicaceae", // 5508
+  // "Bromeliaceae", // 4168
+  // "Cactaceae",
+  // "Campanulaceae", // 3023
+  // "Caryophyllaceae", // 4700
+  // "Commelinaceae", // 935
+  // "Crassulaceae",
+  // "Cucurbitaceae",
+  // "Cupressaceae", // 359
+  // "Euphorbiaceae",
+  // "Fabaceae",
+  // "Geraniaceae", // 989
+  // "Gesneriaceae",
+  // "Hydrangeaceae", // 301
+  // "Iridaceae", // 3078
+  // "Lamiaceae",
+  // "Lauraceae", // 3997
+  // "Moraceae",
+  // "Myrtaceae",
+  // "Oleaceae", // 1001
+  // "Orchidaceae",
+  // "Pinaceae", // 572
+  // "Poaceae",
+  // "Pteridaceae", // 1694
+  // "Rosaceae",
+  // "Rubiaceae",
+  // "Rutaceae",
+  // "Solanaceae",
+
+  // MISSING
+  // "Ericaceae", // 6276
+
+
+  // "Liliaceae", // 945
+  // "Malvaceae", // 6764
+  // "Marantaceae", // 647
+  // "Musaceae", // 171
+  // "Piperaceae", // 4132
+  // "Plantaginaceae", // 3197
+  // "Polypodiaceae", // 4899
+  // "Primulaceae", // 4066
+  // "Ranunculaceae", // 5140
+  // "Sapindaceae", // 2709
+  // "Urticaceae", // 2665
+  // "Verbenaceae", // 1190
+  // "Vitaceae", // 1387
 ];
+const FAMILY_NAME = process.argv[2];
+
+if (!FAMILY_NAME) {
+  console.error('Usage: node ./fetch_trefle.js <Family-name>');
+  process.exit(1);
+}
 
 const TREFLE_TOKEN = process.env.TREFLE_TOKEN || '';
 if (!TREFLE_TOKEN) {
@@ -33,7 +89,7 @@ if (!TREFLE_TOKEN) {
 }
 
 const API_BASE_TREFLE = 'https://trefle.io/api/v1';
-const OUT_FILE = process.env.OUT_FILE || 'data/tresfle_fetch_output.ndjson';
+const OUT_FILE = process.env.OUT_FILE || `data/Trefle/${FAMILY_NAME}.ndjson`;
 
 function sleep(ms) { return new Promise(res => setTimeout(res, ms)); }
 
@@ -92,12 +148,12 @@ async function run() {
   // fresh file
   await fs.writeFile(OUT_FILE, '', 'utf8');
   let total = 0;
-  for (const fam of families) {
-    const items = await fetchFamily(fam);
+  // for (const fam of families) {
+    const items = await fetchFamily(FAMILY_NAME);
     await appendLines(items);
     total += items.length;
-    console.log(`wrote ${items.length} records for ${fam}, total=${total}`);
-  }
+    console.log(`wrote ${items.length} records for ${FAMILY_NAME}, total=${total}`);
+  // }
   console.log('done. total candidates:', total, 'file:', OUT_FILE);
 }
 
