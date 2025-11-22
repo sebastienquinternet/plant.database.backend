@@ -13,7 +13,7 @@ export const handler = async (event: any) => {
       childLogger.info('searchPlantByPrefix_call', { q });
       const plants = await searchPlantByPrefix(q, childLogger);
       childLogger.success('plants_found', { q, count: plants.length });
-      return jsonResponse(200, { plants });
+      return jsonResponse(200, plants);
     }
     if (id) {
       childLogger.info('getPlantByPK_call', { id });
@@ -23,7 +23,7 @@ export const handler = async (event: any) => {
         return jsonResponse(404, { message: 'Plant not found' });
       }
       childLogger.success('plant_found', { id, plant });
-      return jsonResponse(200, { plant });
+      return jsonResponse(200, plant);
     }
     childLogger.warn('missing_query_and_id', { event });
     return jsonResponse(400, { message: 'Provide either query param `q` or path param `id`' });

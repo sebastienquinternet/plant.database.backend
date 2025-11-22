@@ -4,7 +4,7 @@ const path = require('path');
 const GBIF_FOLDER = path.join(__dirname, 'data/GBIF');
 const BEDROCK_FOLDER = path.join(__dirname, 'data/Bedrock');
 const API_BASE = 'https://haij5a6jre.execute-api.ap-southeast-2.amazonaws.com/prod/plants/generate';
-const REQUEST_DELAY_MS = Number(process.env.BEDROCK_REQUEST_DELAY_MS || 100);
+const REQUEST_DELAY_MS = Number(process.env.BEDROCK_REQUEST_DELAY_MS || 50);
 const MAX_RETRIES = Number(process.env.BEDROCK_MAX_RETRIES || 3);
 const API_KEY = process.env.API_ACCESS_KEY;
 
@@ -120,62 +120,60 @@ async function main() {
   // await processFile(fileName);
 
   const families = [
+    // "Amaryllidaceae", // 150
+    // "Anacardiaceae", // 71
     // "Apiaceae", // 238
+    // "Apocynaceae", // 185
     // "Araceae", // 97
+    // "Araliaceae", // 54
     // "Arecaceae", // 184
     // "Asparagaceae", // 232
     // "Asteraceae", // 1306
     // "Begoniaceae", // 18
+    // "Bignoniaceae", // 56
+    // "Boraginaceae", // 280
+    // "Brassicaceae", // 273
+    // "Bromeliaceae", // 60
     // "Cactaceae", // 202
+    // "Campanulaceae", // 108
+    // "Caryophyllaceae", // 208
+    // "Commelinaceae", // 46
     // "Crassulaceae", // 123
     // "Cucurbitaceae", // 56
+    // "Cupressaceae", // 95
+    // "Ericaceae", // 194
     // "Euphorbiaceae", // 203
     // "Fabaceae", // 1033
+    // "Geraniaceae", // 13
     // "Gesneriaceae", // 13
+    // "Hydrangeaceae", // 25
+    // "Iridaceae", // 148
     // "Lamiaceae", // 431
+    // "Lauraceae", // 33
+    // "Liliaceae", // 111
+    // "Malvaceae", // 276
+    // "Marantaceae", // 276
     // "Moraceae", // 35
+    // "Musaceae", // 13
     // "Myrtaceae", // 207
+    // "Oleaceae", // 83
     // "Orchidaceae", // 404
+    // "Pinaceae", // 166
+    // "Piperaceae", // 38
+    // "Plantaginaceae", // 311
     // "Poaceae", // 717
+    // "Polypodiaceae", // 100
+    // "Primulaceae", // 90
     // "Pteridaceae", // 55
+    // "Ranunculaceae", // 238
     // "Rosaceae", // 508
     // "Rubiaceae", // 185
     // "Rutaceae", // 82
+    // "Sapindaceae", // 107
     // "Solanaceae", // 179
-
-    // MISSING
-    // "Amaryllidaceae",
-    // "Anacardiaceae",
-    // "Apocynaceae",
-    // "Araliaceae",
-    // "Bignoniaceae",
-    // "Boraginaceae",
-    // "Brassicaceae",
-    // "Bromeliaceae",
-    // "Campanulaceae",
-    // "Caryophyllaceae",
-    // "Commelinaceae",
-    // "Cupressaceae",
-    // "Ericaceae",
-    // "Geraniaceae",
-    // "Hydrangeaceae",
-    // "Iridaceae",
-    // "Lauraceae",
-    // "Liliaceae",
-    // "Malvaceae",
-    // "Marantaceae",
-    // "Musaceae",
-    // "Oleaceae",
-    // "Pinaceae",
-    // "Piperaceae",
-    // "Plantaginaceae",
-    // "Polypodiaceae",
-    // "Primulaceae",
-    // "Ranunculaceae",
-    // "Sapindaceae",
-    // "Urticaceae",
-    // "Verbenaceae",
-    // "Vitaceae",
+    // "Urticaceae", // 46
+    // "Verbenaceae", // 50
+    // "Vitaceae", // 38
   ];
   for (const family of families) {
     await processFile(`${family}.json`);

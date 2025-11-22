@@ -1,11 +1,13 @@
 import { ddbDocClient } from './dynamoClient';
 import { generatePlantDetails } from './aiPlantService';
 import { GetCommand, PutCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
-import { PlantTaxon, PlantCard } from '../models/plant';
+import { PlantTaxon, PlantCard, PlantImage } from '../models/plant';
 import aliases from '../data/aliases.json';
 import details from '../data/details.json';
 
 const TABLE_NAME = process.env.PLANT_TABLE || 'PlantTaxon';
+const PEXELS_API_KEY = process.env.PEXELS_API_KEY;
+const PEXELS_ENDPOINT = 'https://api.pexels.com/v1/search';
 
 function slugifyName(name: string) {
   return name
@@ -45,15 +47,93 @@ export async function searchPlantByPrefix(prefix: string, logger: any): Promise<
   return Object.values(cardsObj);
 }
 
-export async function getPlantByPK(pk: string, logger: any): Promise<PlantTaxon | null> {
-  logger.info('getPlantByPK_start', { pk });
+export async function getPlantByPK(pkId: string, logger: any): Promise<PlantTaxon | null> {
+  logger.info('getPlantByPK_start', { pkId });
+  const pk = pkId.startsWith('PLANT#') ? pkId : `PLANT#${pkId}`;
   try {
     const res = await ddbDocClient.send(new GetCommand({ TableName: TABLE_NAME, Key: { PK: pk } } as any));
-    logger.info('getPlantByPK_success', { pk, found: !!res.Item });
-    return (res.Item as PlantTaxon) ?? null;
+    const plant = (res.Item as PlantTaxon) ?? null;
+    logger.info('getPlantByPK_dynamo_result', { pk, found: !!plant });
+
+    if (!plant) {
+      return null;
+    }
+
+    if (Array.isArray(plant.images) && plant.images.length > 0) {
+      logger.info('getPlantByPK_images_present', { pk, imageCount: plant.images.length });
+      return plant;
+    }
+
+    const images = await fetchPexelsImages(plant, logger);
+    if (!images.length) {
+      logger.warn('getPlantByPK_pexels_empty', { pk });
+      return plant;
+    }
+
+    plant.images = images;
+    plant.updatedAt = new Date().toISOString();
+    await putPlant(plant, logger);
+    logger.info('getPlantByPK_images_persisted', { pk, imageCount: images.length });
+    return plant;
   } catch (err: any) {
     logger.error('getPlantByPK_error', { pk, error: err });
     throw err;
+  }
+}
+
+/**
+ * Fetch plant imagery from Pexels when absent in the stored record.
+ */
+async function fetchPexelsImages(plant: PlantTaxon, logger: any): Promise<PlantImage[]> {
+  if (!PEXELS_API_KEY) {
+    logger.warn('fetchPexelsImages_missing_key');
+    return [];
+  }
+
+  if (!plant.scientificName && !plant.commonName) {
+    logger.warn('fetchPexelsImages_missing_names', { pk: plant.PK });
+    return [];
+  }
+
+  const queryParts = [plant.scientificName, plant.commonName].filter(Boolean);
+    const query = `"${queryParts.join('" "')}" plant`.trim();
+
+  const url = new URL(PEXELS_ENDPOINT);
+  url.searchParams.set('query', query);
+  url.searchParams.set('orientation', 'landscape');
+  url.searchParams.set('per_page', '5');
+
+  try {
+    let urlString = url.toString();
+    logger.info('fetchPexelsImages_fetch', { urlString });
+    const response = await fetch(urlString, {
+      headers: {
+        Authorization: PEXELS_API_KEY,
+      },
+    });
+
+    if (!response.ok) {
+      logger.error('fetchPexelsImages_http_error', { status: response.status, statusText: response.statusText });
+      return [];
+    }
+
+    const data = (await response.json()) as { photos?: any[] };
+    if (!Array.isArray(data?.photos)) {
+      logger.warn('fetchPexelsImages_unexpected_payload');
+      return [];
+    }
+
+    return data.photos.map((photo) => ({
+      small: photo?.src?.medium,
+      regular: photo?.src?.large,
+      author: photo?.photographer ?? null,
+      source: photo?.url ?? null,
+    }))
+    .filter((img) => img.small && img.regular)
+    .slice(0, 5);
+  } catch (error) {
+    logger.error('fetchPexelsImages_error', { error });
+    return [];
   }
 }
 
@@ -109,7 +189,7 @@ export async function putPlant(body: Partial<PlantTaxon>, logger: any): Promise<
     petFriendly: body.petFriendly,
     frostTolerance: body.frostTolerance,
     heatTolerance: body.heatTolerance,
-    // images: body.images,
+    images: body.images,
     createdAt: now,
     updatedAt: now
   };

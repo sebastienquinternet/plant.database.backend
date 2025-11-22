@@ -43,6 +43,7 @@ Resources:
       Environment:
         Variables:
           PLANT_TABLE: !Ref PlantTable
+          PEXELS_API_KEY: !Ref PexelsApiKey
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref PlantTable
@@ -80,6 +81,7 @@ Resources:
       Environment:
         Variables:
           PLANT_TABLE: !Ref PlantTable
+          PEXELS_API_KEY: !Ref PexelsApiKey
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref PlantTable
@@ -104,6 +106,7 @@ Resources:
       Environment:
         Variables:
           PLANT_TABLE: !Ref PlantTable
+          PEXELS_API_KEY: !Ref PexelsApiKey
       Policies:
         - Statement:
             - Effect: Allow
@@ -131,6 +134,7 @@ Resources:
       Environment:
         Variables:
           PLANT_TABLE: !Ref PlantTable
+          PEXELS_API_KEY: !Ref PexelsApiKey
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref PlantTable
@@ -155,6 +159,7 @@ Resources:
       Environment:
         Variables:
           PLANT_TABLE: !Ref PlantTable
+          PEXELS_API_KEY: !Ref PexelsApiKey
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref PlantTable
@@ -179,6 +184,11 @@ Resources:
       KeySchema:
         - AttributeName: PK
           KeyType: HASH
+
+Parameters:
+  PexelsApiKey:
+    Type: String
+    Description: "Pexels API Access Key"
 
 Outputs:
   ApiUrl:

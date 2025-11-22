@@ -15,7 +15,7 @@ export type PetFriendlyValue = 'yes' | 'no';
 export interface PlantImage {
   small: string;
   regular: string;
-  alt?: string | null;
+  // alt?: string | null;
   author?: string | null;
   source?: string | null;
 }
@@ -23,6 +23,7 @@ export interface PlantImage {
 export interface PlantTaxon {
   PK: string;
   scientificName: string;
+  commonName: string;
   kingdom?: string;
   phylum?: string;
   class?: string;
