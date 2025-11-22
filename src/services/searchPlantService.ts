@@ -21,6 +21,10 @@ export async function getPlantPKsByAliasPrefix(prefix: string, logger: any): Pro
     logger.warn('getPlantPKsByAliasPrefix_empty_prefix');
     return [];
   }
+  if (prefix.length < 3) {
+    logger.warn('getPlantPKsByAliasPrefix_prefix_too_short');
+    return [];
+  }
 
   const lower = prefix.toLowerCase();
   const shard = getAliasShard(prefix);
@@ -46,6 +50,7 @@ export async function getPlantDetailsByPKs(pks: Array<string>, logger: any): Pro
     .filter((card): card is PlantCard & { popularity?: any } => Boolean(card));
 
   cards.sort((a, b) => b.popularity - a.popularity);
-  const top20Plants = cards.slice(0, 20);
-  return top20Plants;
+  // return cards;
+  const topPlants = cards.slice(0, 50);
+  return topPlants;
 }

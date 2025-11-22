@@ -65,7 +65,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref PlantApi
-            Path: /plants
+            Path: /plants/search
             Method: GET
             Auth:
               ApiKeyRequired: true

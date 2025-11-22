@@ -26,7 +26,7 @@ export const handler = async (event: any) => {
       return jsonResponse(200, plant);
     }
     childLogger.warn('missing_query_and_id', { event });
-    return jsonResponse(400, { message: 'Provide either query param `q` or path param `id`' });
+    return jsonResponse(400, { message: 'Invalid parameters' });
   } catch (err: any) {
     childLogger.error('handler_error', { error: err });
     return jsonResponse(500, { message: 'Internal server error' });
