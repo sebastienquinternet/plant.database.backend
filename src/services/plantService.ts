@@ -1,13 +1,11 @@
 import { ddbDocClient } from './dynamoClient';
 import { generatePlantDetails } from './aiPlantService';
+import { fetchPexelsImages } from './pexelsService';
+import { getPlantPKsByAliasPrefix, getPlantDetailsByPKs } from './searchPlantService';
 import { GetCommand, PutCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
-import { PlantTaxon, PlantCard, PlantImage } from '../models/plant';
-import aliases from '../data/aliases.json';
-import details from '../data/details.json';
+import { PlantTaxon, PlantCard } from '../models/plant';
 
 const TABLE_NAME = process.env.PLANT_TABLE || 'PlantTaxon';
-const PEXELS_API_KEY = process.env.PEXELS_API_KEY;
-const PEXELS_ENDPOINT = 'https://api.pexels.com/v1/search';
 
 function slugifyName(name: string) {
   return name
@@ -17,34 +15,14 @@ function slugifyName(name: string) {
   .replace(/^_|_$/g, '');
 }
 
-export async function getPlantPKsByAliasPrefix(prefix: string, logger: any): Promise<string[]> {
-  logger.info('getPlantPKsByAliasPrefix_start', { prefix });
-  const lower = prefix.toLowerCase();
-  const matches = new Set<string>();
-  for (const [alias, pks] of Object.entries(aliases as Record<string, string[]>)) {
-    if (!alias.toLowerCase().startsWith(lower)) {
-      continue;
-    }
-    for (const shortPk of pks) {
-      matches.add(`PLANT#${shortPk}`);
-    }
-  }
-  logger.info('getPlantPKsByAliasPrefix_success', { prefix, count: matches.size });
-  return Array.from(matches);
-}
-
 export async function searchPlantByPrefix(prefix: string, logger: any): Promise<PlantCard[]> {
   logger.info('searchPlantByPrefix_start', { prefix });
-  const pks = await getPlantPKsByAliasPrefix(prefix, logger);
 
-  const cardsObj: Record<string, PlantCard> = {};
-  for (const pk of pks) {
-    const shortPk = pk.replace(/^PLANT#/, '');
-    const det = (details as Record<string, any> | undefined)?.[shortPk];
-    cardsObj[shortPk] = det;
-  }
-  logger.info('searchPlantByPrefix_success', { prefix, count: Object.keys(cardsObj).length });
-  return Object.values(cardsObj);
+  const pks = await getPlantPKsByAliasPrefix(prefix, logger);
+  const cards = await getPlantDetailsByPKs(pks, logger);
+
+  logger.info('searchPlantByPrefix_success', { prefix, count: cards.length });
+  return cards;
 }
 
 export async function getPlantByPK(pkId: string, logger: any): Promise<PlantTaxon | null> {
@@ -78,62 +56,6 @@ export async function getPlantByPK(pkId: string, logger: any): Promise<PlantTaxo
   } catch (err: any) {
     logger.error('getPlantByPK_error', { pk, error: err });
     throw err;
-  }
-}
-
-/**
- * Fetch plant imagery from Pexels when absent in the stored record.
- */
-async function fetchPexelsImages(plant: PlantTaxon, logger: any): Promise<PlantImage[]> {
-  if (!PEXELS_API_KEY) {
-    logger.warn('fetchPexelsImages_missing_key');
-    return [];
-  }
-
-  if (!plant.scientificName && !plant.commonName) {
-    logger.warn('fetchPexelsImages_missing_names', { pk: plant.PK });
-    return [];
-  }
-
-  const queryParts = [plant.scientificName, plant.commonName].filter(Boolean);
-    const query = `"${queryParts.join('" "')}" plant`.trim();
-
-  const url = new URL(PEXELS_ENDPOINT);
-  url.searchParams.set('query', query);
-  url.searchParams.set('orientation', 'landscape');
-  url.searchParams.set('per_page', '5');
-
-  try {
-    let urlString = url.toString();
-    logger.info('fetchPexelsImages_fetch', { urlString });
-    const response = await fetch(urlString, {
-      headers: {
-        Authorization: PEXELS_API_KEY,
-      },
-    });
-
-    if (!response.ok) {
-      logger.error('fetchPexelsImages_http_error', { status: response.status, statusText: response.statusText });
-      return [];
-    }
-
-    const data = (await response.json()) as { photos?: any[] };
-    if (!Array.isArray(data?.photos)) {
-      logger.warn('fetchPexelsImages_unexpected_payload');
-      return [];
-    }
-
-    return data.photos.map((photo) => ({
-      small: photo?.src?.medium,
-      regular: photo?.src?.large,
-      author: photo?.photographer ?? null,
-      source: photo?.url ?? null,
-    }))
-    .filter((img) => img.small && img.regular)
-    .slice(0, 5);
-  } catch (error) {
-    logger.error('fetchPexelsImages_error', { error });
-    return [];
   }
 }
 
